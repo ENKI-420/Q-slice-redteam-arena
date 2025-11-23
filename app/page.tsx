@@ -82,6 +82,16 @@ export default function HomePage() {
                   VoQN Dashboard
                 </Button>
               </Link>
+              <Link href="/engineering">
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="text-primary/70 hover:text-primary hover:bg-primary/5 px-8 py-6 text-lg w-full sm:w-auto border border-dashed border-primary/20"
+                >
+                  <Zap className="mr-2 h-5 w-5" />
+                  Access Engineering Synthesis
+                </Button>
+              </Link>
             </div>
 
             <div className="mt-8 flex justify-center lg:justify-start">
