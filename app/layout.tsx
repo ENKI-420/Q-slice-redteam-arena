@@ -8,8 +8,8 @@ const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
-  title: "DNA-Lang Quantum Network",
-  description: "Biological Computing Interface",
+  title: "Threatlab Aura Arena - Post-Quantum Cybersecurity",
+  description: "QS-UED-PALS Red Teaming Platform for Post-Quantum Security",
   generator: "v0.app",
   icons: {
     icon: [
@@ -37,8 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen selection:bg-cyan-500/30`}>
-        <div className="scanline" />
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen selection:bg-primary/30`}>
         {children}
         <Analytics />
       </body>

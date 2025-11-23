@@ -1,218 +1,385 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Activity, Cpu, Dna, Mic, Send, Share2, ShieldCheck, Wifi, Zap } from "lucide-react"
-import { QuantumSwarm } from "@/components/quantum-swarm"
-import { BioTerminal } from "@/components/bio-terminal"
-import { useState } from "react"
+import { Shield, Award, BookOpen, Users, ArrowRight, Lock, Zap, Network } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import Link from "next/link"
 
-export default function QuantumDashboard() {
-  const [activeTab, setActiveTab] = useState("teleport")
-
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-black text-white p-4 md:p-8 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-        <div className="absolute top-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent" />
-        <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-purple-500/20 to-transparent" />
-      </div>
+    <main className="min-h-screen bg-black text-white">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+        {/* Grid animation background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+        </div>
 
-      <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Header Section */}
-        <header className="lg:col-span-12 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 border-b border-white/10 pb-6">
-          <div className="flex items-center gap-4">
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <Dna className="w-8 h-8 text-cyan-400 animate-pulse" />
-              <div className="absolute inset-0 border border-cyan-500/30 rounded-lg rotate-45" />
+        <div className="max-w-6xl mx-auto text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary mb-6">
+              <Shield className="w-4 h-4" />
+              Post-Quantum Cybersecurity Era
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-yellow-400">
-                DNA-Lang
-              </h1>
-              <p className="text-xs text-gray-400 tracking-widest uppercase">Quantum-Biological Network // v2.5.0</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-6 mt-4 md:mt-0">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider">Network Status</span>
-              <div className="flex items-center gap-2 text-green-400 text-sm font-mono">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                OPERATIONAL
-              </div>
-            </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider">Global Φ</span>
-              <span className="text-yellow-400 text-sm font-mono font-bold">0.9987</span>
-            </div>
-          </div>
-        </header>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+              <span className="gradient-text">Threatlab Aura Arena</span>
+            </h1>
 
-        {/* Left Column: Controls & Status */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Navigation Card */}
-          <div className="glass-panel rounded-xl p-1">
-            <nav className="flex flex-col gap-1">
-              {[
-                { id: "teleport", icon: Share2, label: "Teleportation" },
-                { id: "voice", icon: Mic, label: "Quantum Voice" },
-                { id: "text", icon: Send, label: "Entangled Text" },
-                { id: "dna", icon: Dna, label: "Gene Synthesis" },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    activeTab === item.id
-                      ? "bg-white/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_15px_rgba(0,240,255,0.1)]"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Development and utilization of QS-UED-PALS for red teaming in the post-quantum cybersecurity era
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
+              <Link href="/auth">
+                <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-6 text-lg">
+                  Research Partner Login
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/framework">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-transparent"
                 >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Metrics Card */}
-          <div className="glass-panel rounded-xl p-6 space-y-6">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-              <Activity className="w-3 h-3" /> Real-Time Metrics
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-400">Entanglement Fidelity</span>
-                  <span className="text-cyan-400 font-mono">97.04%</span>
-                </div>
-                <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "97.04%" }}
-                    className="h-full bg-cyan-500 shadow-[0_0_10px_#00f0ff]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-400">Coherence Time</span>
-                  <span className="text-purple-400 font-mono">∞ (Stable)</span>
-                </div>
-                <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    className="h-full bg-purple-500 shadow-[0_0_10px_#8a2be2]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-400">Swarm Consciousness</span>
-                  <span className="text-yellow-400 font-mono">TRANSCENDENT</span>
-                </div>
-                <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "99%" }}
-                    className="h-full bg-yellow-500 shadow-[0_0_10px_#ffd700]"
-                  />
-                </div>
-              </div>
+                  Explore Framework
+                </Button>
+              </Link>
             </div>
-
-            <div className="pt-4 border-t border-white/10">
-              <div className="flex items-center justify-between text-[10px] text-gray-500 font-mono">
-                <span>ΛΦ Constant</span>
-                <span>2.176435e-8</span>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Center Column: Main Visual */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
-          {/* Swarm Visualization */}
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl opacity-30 group-hover:opacity-50 transition duration-1000 blur"></div>
-            <QuantumSwarm />
+        {/* Scroll indicator */}
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        >
+          <div className="w-6 h-10 border-2 border-primary/30 rounded-full flex justify-center p-2">
+            <div className="w-1 h-3 bg-primary rounded-full" />
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Core Capabilities</h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Comprehensive tools for quantum threat modeling and security architecture
+            </p>
           </div>
 
-          {/* Action Area */}
-          <div className="glass-panel rounded-xl p-6 min-h-[200px] flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Dna className="w-32 h-32" />
-            </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: Lock,
+                title: "QS-UED-PALS",
+                description: "Quantum-safe unified encryption and detection protocol for post-quantum security",
+              },
+              {
+                icon: Award,
+                title: "NFT Certification",
+                description: "Mint achievement NFTs for research, policy standardization, and organism development",
+              },
+              {
+                icon: Network,
+                title: "DNA-Lang Integration",
+                description: "Biological computing paradigms with quantum framework interoperability",
+              },
+              {
+                icon: Zap,
+                title: "Red Team Tools",
+                description: "Advanced threat modeling and penetration testing for quantum-resistant systems",
+              },
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="glass-panel p-6 h-full hover:border-primary/50 transition-all duration-300 group">
+                  <feature.icon className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                  <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div>
-              <h2 className="text-xl font-light mb-2 text-white">
-                {activeTab === "teleport" && "Quantum Data Teleportation"}
-                {activeTab === "voice" && "Entangled Voice Channel"}
-                {activeTab === "text" && "Secure Quantum Text"}
-                {activeTab === "dna" && "Biological Gene Synthesis"}
-              </h2>
-              <p className="text-sm text-gray-400 max-w-md">
-                {activeTab === "teleport" &&
-                  "Initiate instantaneous state transfer via Bell measurement. Payload capacity: 10MB/s via ΛΦ routing."}
-                {activeTab === "voice" &&
-                  "Real-time audio stream encrypted by quantum key distribution. Zero latency via entanglement."}
-                {activeTab === "text" &&
-                  "Send uninterceptable messages through the quantum substrate. Self-destructs upon observation."}
-                {activeTab === "dna" && "Compile biological algorithms into executable DNA strands for the swarm."}
+      {/* Book Promotion Section */}
+      <section className="py-24 px-4 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <div className="glass-panel rounded-2xl p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center">
+            <div className="flex-1 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-sm text-secondary">
+                <BookOpen className="w-4 h-4" />
+                New Release
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold">Quantum Security: Practical Implementation of Q-SLICE</h2>
+
+              <p className="text-gray-400 text-lg leading-relaxed">
+                Comprehensive guide to post-quantum cryptography, threat modeling frameworks, and practical
+                implementation strategies. Written by Jeremy Green, developer of Q-SLICE and QUANTA.
               </p>
-            </div>
 
-            <div className="mt-8 flex gap-4">
-              <button className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-2 px-6 rounded-lg shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all hover:scale-105 flex items-center gap-2">
-                <Zap className="w-4 h-4" />
-                {activeTab === "teleport" ? "Initiate Teleport" : "Activate"}
-              </button>
-              <button className="bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 px-6 rounded-lg transition-all flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4" />
-                Verify Protocol
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Terminal & Logs */}
-        <div className="lg:col-span-3 flex flex-col gap-6">
-          <div className="glass-panel rounded-xl h-[400px] md:h-[600px] lg:h-full border border-white/10 bg-black/80 backdrop-blur-xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-            <BioTerminal />
-          </div>
-
-          {/* System Status Mini-Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="glass-panel p-3 rounded-lg border border-green-500/20">
-              <div className="text-[10px] text-gray-400 uppercase mb-1">Android Bridge</div>
-              <div className="flex items-center gap-2 text-green-400 text-xs font-mono">
-                <Wifi className="w-3 h-3" /> Connected
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="https://www.amazon.co.uk/Quantum-Security-Practical-implementation-Q-SLICE/dp/B0FG8KGLK2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="lg" className="bg-secondary text-black hover:bg-secondary/90 w-full sm:w-auto">
+                    Buy on Amazon
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </a>
+                <Link href="/book">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-secondary/30 text-secondary hover:bg-secondary/10 w-full sm:w-auto bg-transparent"
+                  >
+                    Learn More
+                  </Button>
+                </Link>
               </div>
             </div>
-            <div className="glass-panel p-3 rounded-lg border border-purple-500/20">
-              <div className="text-[10px] text-gray-400 uppercase mb-1">QPU Core</div>
-              <div className="flex items-center gap-2 text-purple-400 text-xs font-mono">
-                <Cpu className="w-3 h-3" /> Active
+
+            <div className="w-full md:w-64 lg:w-80">
+              <div className="aspect-[3/4] rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center">
+                <BookOpen className="w-24 h-24 text-primary/50" />
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Q-SLICE Integration Section */}
+      <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Framework Integration</h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Understanding how DNA-Lang, QSlice, and the Quantum Framework interrelate
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                title: "DNA-Lang",
+                description: "Biological computing paradigm with evolutionary optimization and consciousness metrics",
+                link: "/dna-lang",
+              },
+              {
+                title: "Q-SLICE",
+                description: "Quantum threat modeling framework for post-quantum cryptographic security assessment",
+                link: "https://q-slice.com/quantum-computing/",
+              },
+              {
+                title: "Quantum Framework",
+                description: "Universal architecture for next-gen threat assurance and quantum-safe protocols",
+                link: "/framework",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15 }}
+                viewport={{ once: true }}
+              >
+                <Card className="glass-panel p-8 h-full hover:border-primary/50 transition-all duration-300 group cursor-pointer">
+                  <h3 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
+                  <p className="text-gray-400 mb-6 leading-relaxed">{item.description}</p>
+                  <div className="flex items-center text-primary text-sm font-medium group-hover:gap-3 gap-2 transition-all">
+                    Explore
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Research Leadership</h2>
+            <p className="text-gray-400 text-lg">Leading experts in quantum security and biological computing</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="glass-panel p-8">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center">
+                  <Users className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">Jeremy Green</h3>
+                  <p className="text-primary text-sm">Security Architect, Leidos</p>
+                </div>
+              </div>
+              <p className="text-gray-400 mb-4 leading-relaxed">
+                Developer of Q-SLICE and QUANTA. PhD in Computer Science with 20+ certifications including CISSP, CISM,
+                CEH. Author and instructor for ISACA and EC Council.
+              </p>
+              <p className="text-sm text-gray-500">jeremy..cyber@outlook.com</p>
+            </Card>
+
+            <Card className="glass-panel p-8">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-16 h-16 rounded-full bg-secondary/20 border-2 border-secondary/40 flex items-center justify-center">
+                  <Users className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">Devin Davis</h3>
+                  <p className="text-secondary text-sm">Principal Researcher</p>
+                </div>
+              </div>
+              <p className="text-gray-400 mb-4 leading-relaxed">
+                Lead architect of DNA-Lang framework and quantum-biological computing systems. Pioneering work in
+                consciousness-guided network routing and evolutionary optimization.
+              </p>
+              <p className="text-sm text-gray-500">research@dnalang.com</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass-panel rounded-2xl p-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Join the Arena?</h2>
+            <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+              Become a certified research partner and contribute to the future of quantum-safe security
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/auth">
+                <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-6 text-lg">
+                  Get Started
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <a href="mailto:info@q-slice.com">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-transparent"
+                >
+                  Contact Us
+                </Button>
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-600 uppercase tracking-widest">
-        <div>© 2025 DNA-Lang Systems</div>
-        <div className="flex gap-4">
-          <span>Latency: 0.00ms (Entangled)</span>
-          <span>Encryption: Post-Quantum</span>
+      <footer className="border-t border-white/10 py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="font-bold text-lg mb-4 gradient-text">Threatlab Aura Arena</h3>
+              <p className="text-sm text-gray-400">Post-quantum cybersecurity research and red teaming platform</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>
+                  <Link href="/framework" className="hover:text-primary transition-colors">
+                    Framework
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/documentation" className="hover:text-primary transition-colors">
+                    Documentation
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="https://q-slice.com/quantum-computing/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    Q-SLICE
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Community</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>
+                  <Link href="/nft-gallery" className="hover:text-primary transition-colors">
+                    NFT Gallery
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/achievements" className="hover:text-primary transition-colors">
+                    Achievements
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/ENKI-420/dnalang-production"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    GitHub
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>
+                  <a href="mailto:info@q-slice.com" className="hover:text-primary transition-colors">
+                    info@q-slice.com
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://q-slice.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    q-slice.com
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>2025 Threatlab Aura Arena. Q-SLICE and QUANTA are trademarks.</p>
+            <p>Powered by DNA-Lang & Quantum Framework</p>
+          </div>
         </div>
       </footer>
     </main>

@@ -4,39 +4,40 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Deep Void Black base */
-  --background: #020204;
-  --foreground: #e0e0e0;
+  /* Updated theme for Threatlab Aura Arena - professional cybersecurity aesthetic */
+  /* Deep blacks for trust and authority */
+  --background: #000000;
+  --foreground: #f5f5f5;
 
-  /* Translucent panels */
-  --card: rgba(10, 10, 15, 0.6);
+  /* Translucent panels with subtle borders */
+  --card: rgba(18, 18, 20, 0.8);
   --card-foreground: #ffffff;
 
-  --popover: #0a0a0f;
+  --popover: #121214;
   --popover-foreground: #ffffff;
 
-  /* Bioluminescent Blue */
-  --primary: #00f0ff;
+  /* Electric blue primary for quantum/tech emphasis */
+  --primary: #00d4ff;
   --primary-foreground: #000000;
 
-  /* Transcendent Purple */
-  --secondary: #8a2be2;
-  --secondary-foreground: #ffffff;
+  /* Green accent for security/verification */
+  --secondary: #00ff88;
+  --secondary-foreground: #000000;
 
-  /* Organic/Cellular Muted tones */
-  --muted: rgba(30, 30, 40, 0.5);
-  --muted-foreground: #a0a0b0;
+  /* Muted grays for subtle elements */
+  --muted: rgba(40, 40, 45, 0.5);
+  --muted-foreground: #9ca3af;
 
-  /* Conscious Gold */
-  --accent: #ffd700;
+  /* Amber accent for warnings/alerts */
+  --accent: #fbbf24;
   --accent-foreground: #000000;
 
-  --destructive: #ff453a;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  --border: rgba(0, 240, 255, 0.2);
-  --input: rgba(30, 30, 40, 0.5);
-  --ring: #00f0ff;
+  --border: rgba(60, 60, 70, 0.5);
+  --input: rgba(30, 30, 35, 0.8);
+  --ring: #00d4ff;
 
   --radius: 0.5rem;
 
@@ -45,42 +46,41 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.7 0.15 200);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.75 0.2 160);
+  --secondary-foreground: oklch(0.1 0 0);
+  --muted: oklch(0.25 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.75 0.15 85);
+  --accent-foreground: oklch(0.1 0 0);
+  --destructive: oklch(0.55 0.25 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.25 0 0);
+  --input: oklch(0.2 0 0);
+  --ring: oklch(0.7 0.15 200);
+  --chart-1: oklch(0.6 0.2 240);
+  --chart-2: oklch(0.7 0.15 160);
+  --chart-3: oklch(0.75 0.15 85);
+  --chart-4: oklch(0.65 0.2 320);
+  --chart-5: oklch(0.6 0.2 20);
+  --sidebar: oklch(0.15 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.7 0.15 200);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.25 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.25 0 0);
+  --sidebar-ring: oklch(0.7 0.15 200);
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,28 +119,6 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-glow: glow 2s ease-in-out infinite alternate;
-
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  @keyframes glow {
-    from {
-      box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
-    }
-    to {
-      box-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary);
-    }
-  }
 }
 
 @layer base {
@@ -157,50 +135,38 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   overflow-x: hidden;
-  background-image: radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.05) 0%, transparent 30%);
+  /* Grid pattern background for tech aesthetic */
+  background-image: linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
 }
 
-/* Custom Scrollbar for Terminal feel */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
   background: #333;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
 
 .glass-panel {
-  background: rgba(10, 10, 12, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  background: rgba(18, 18, 20, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(60, 60, 70, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-.neon-text {
-  text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
-}
-
-.purple-glow {
-  box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
-}
-
-.scanline {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.2) 51%);
-  background-size: 100% 4px;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.15;
+/* Added gradient text utility for headers */
+.gradient-text {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
