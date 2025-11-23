@@ -15,6 +15,9 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-zinc-300">
+          <Link href="/nexus" className="hover:text-cyan-400 transition-colors">
+            Quantum Nexus
+          </Link>
           <Link href="/framework" className="hover:text-cyan-400 transition-colors">
             Framework
           </Link>
@@ -48,6 +51,9 @@ export function SiteHeader() {
             </SheetTrigger>
             <SheetContent side="right" className="bg-zinc-950 border-zinc-800 text-white">
               <div className="flex flex-col space-y-4 mt-8">
+                <Link href="/nexus" className="text-lg hover:text-cyan-400">
+                  Quantum Nexus
+                </Link>
                 <Link href="/framework" className="text-lg hover:text-cyan-400">
                   Framework
                 </Link>
