@@ -196,7 +196,7 @@ export default function HomePage() {
               {
                 title: "DNA-Lang",
                 description: "Biological computing paradigm with evolutionary optimization and consciousness metrics",
-                link: "/dna-lang",
+                link: "/physics",
               },
               {
                 title: "Q-SLICE",
@@ -216,14 +216,16 @@ export default function HomePage() {
                 transition={{ delay: i * 0.15 }}
                 viewport={{ once: true }}
               >
-                <Card className="glass-panel p-8 h-full hover:border-primary/50 transition-all duration-300 group cursor-pointer">
-                  <h3 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
-                  <p className="text-gray-400 mb-6 leading-relaxed">{item.description}</p>
-                  <div className="flex items-center text-primary text-sm font-medium group-hover:gap-3 gap-2 transition-all">
-                    Explore
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                </Card>
+                <Link href={item.link}>
+                  <Card className="glass-panel p-8 h-full hover:border-primary/50 transition-all duration-300 group cursor-pointer">
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
+                    <p className="text-gray-400 mb-6 leading-relaxed">{item.description}</p>
+                    <div className="flex items-center text-primary text-sm font-medium group-hover:gap-3 gap-2 transition-all">
+                      Explore
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </Card>
+                </Link>
               </motion.div>
             ))}
           </div>
