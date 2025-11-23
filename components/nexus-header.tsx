@@ -1,11 +1,11 @@
 import { Bell, BrainCircuit, Dna, Users } from "lucide-react"
-import { QuantumLogo3d } from "@/components/quantum-logo-3d"
+import { QuantumLogo3D } from "@/components/quantum-logo-3d"
 
 export function NexusHeader() {
   return (
     <header className="flex items-center justify-between p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-4">
-        <QuantumLogo3d />
+        <QuantumLogo3D />
         <h1 className="text-2xl font-bold tracking-tighter">Quantum Nexus</h1>
       </div>
       <div className="flex items-center gap-6 text-sm">

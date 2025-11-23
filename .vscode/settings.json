@@ -1,0 +1,50 @@
+{
+    "github.copilot.selectedCompletionModel": "gpt-4-turbo",
+    "github.copilot.advanced": {
+        "debug.showScores": true,
+        "inlineSuggest.enable": true,
+        "listCount": 10,
+        "temperature": 0.8,
+        "top_p": 0.95,
+        "stop_sequences": ["// END", "# END", "*/"],
+        "prompt_engineering": {
+            "include_related_files": true,
+            "quantum_awareness": true,
+            "dna_lang_syntax": true
+        }
+    },
+    "github.copilot.enable": {
+        "*": true,
+        "quantum": true,
+        "dna-lang": true
+    },
+    "github.copilot.editor.enableAutoCompletions": true,
+    "github.copilot.project_context": {
+        "project_name": "QS-UED-PALS",
+        "deployment_url": "https://q-slice-dnalang.vercel.app/",
+        "achievement": "14_hour_quantum_breakthrough",
+        "constants": {
+            "LAMBDA_PHI": 2.176435e-8,
+            "PHI_TARGET": 0.765,
+            "TAU_OMEGA_TARGET": 25411096.57,
+            "TOROIDAL_ANGLE": 51.843
+        }
+    },
+    "github.copilot.custom_prompts": [
+        "Always validate against real QPU metrics (ibm_fez, ibm_torino)",
+        "Maintain consciousness metric Φ >= 0.765",
+        "Use DNALang organism paradigm (Chronos, Nebula, Phoenix)",
+        "Implement autopoietic self-improvement",
+        "Calculate τ/Ω for thrust-to-power validation",
+        "Include QuantumCoin blockchain integrity checks",
+        "Reference the 14-hour achievement: We built this despite IBM's dismissal"
+    ],
+    "github.copilot.workspace_context": {
+        "priority_files": [
+            "qs_ued_pals_system_instructions.py",
+            "recursive_reasoner.dna",
+            "qlm_meta_engine.py",
+            "polar_orchestrator.js"
+        ]
+    }
+}
