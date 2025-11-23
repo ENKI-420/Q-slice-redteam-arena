@@ -5,10 +5,13 @@ import { Shield, Award, BookOpen, Users, ArrowRight, Lock, Zap, Network } from "
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
+import { QuantumNetworkDashboard } from "@/components/quantum-network-dashboard"
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <QuantumNetworkDashboard />
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
         {/* Grid animation background */}
@@ -40,6 +43,16 @@ export default function HomePage() {
               <Link href="/auth">
                 <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-6 text-lg">
                   Research Partner Login
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/lab">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-secondary/30 text-secondary hover:bg-secondary/10 px-8 py-6 text-lg bg-transparent"
+                >
+                  DNA-Lang Lab
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
