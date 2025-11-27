@@ -1,24 +1,3 @@
-// Ambient module and JSX declarations to satisfy TypeScript in this environment
-declare module "next/link" {
-  import * as React from "react";
-  const Link: React.ComponentType<any>;
-  export default Link;
-}
-
-declare module "lucide-react" {
-  import * as React from "react";
-  export const Menu: React.FC<any>;
-  export default {} as any;
-}
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      [elemName: string]: any;
-    }
-  }
-}
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"

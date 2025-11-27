@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, Award, BookOpen, Users, ArrowRight, Lock, Zap, Network, Smartphone } from "lucide-react"
+import { Shield, Award, BookOpen, Users, ArrowRight, Lock, Zap, Network, Smartphone, Bot, Command } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
@@ -53,6 +53,15 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mt-12">
+              <Link href="/redteam">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 text-white hover:from-red-500 hover:via-orange-500 hover:to-yellow-500 px-8 py-6 text-lg w-full sm:w-auto shadow-lg animate-pulse"
+                >
+                  <Shield className="mr-2 h-5 w-5" />
+                  Red Team Sentinels
+                </Button>
+              </Link>
               <Link href="/auth">
                 <Button
                   size="lg"
@@ -60,6 +69,15 @@ export default function HomePage() {
                 >
                   Research Partner Login
                   <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/command">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 text-white hover:from-cyan-500 hover:via-purple-500 hover:to-pink-500 px-8 py-6 text-lg w-full sm:w-auto shadow-lg"
+                >
+                  <Command className="mr-2 h-5 w-5" />
+                  Command Center
                 </Button>
               </Link>
               <Link href="/lab">
@@ -90,6 +108,16 @@ export default function HomePage() {
                 >
                   <Zap className="mr-2 h-5 w-5" />
                   Access Engineering Synthesis
+                </Button>
+              </Link>
+              {/* Added Swarm Interface button */}
+              <Link href="/swarm">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-cyan-600 to-purple-600 text-white hover:from-cyan-500 hover:to-purple-500 px-8 py-6 text-lg w-full sm:w-auto shadow-lg"
+                >
+                  <Bot className="mr-2 h-5 w-5" />
+                  Swarm Interface
                 </Button>
               </Link>
             </div>
@@ -148,9 +176,10 @@ export default function HomePage() {
                 description: "Mint achievement NFTs for research, policy standardization, and organism development",
               },
               {
+                /* Updated Red Team Tools description to mention Sentinel integration */
                 icon: Zap,
-                title: "Red Team Tools",
-                description: "Advanced threat modeling and penetration testing for quantum-resistant systems",
+                title: "Red Team Sentinels",
+                description: "AURA-AIDEN coordinated offensive security tools with autonomous defense agents",
               },
             ].map((feature, i) => (
               <motion.div
