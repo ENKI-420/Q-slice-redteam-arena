@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Zap } from "lucide-react"
+import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Zap, Users } from "lucide-react"
 
 const ASCII_LOGO = `
 ██████╗ ███╗   ██╗ █████╗       ██╗      █████╗ ███╗   ██╗ ██████╗ 
@@ -154,7 +154,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto"
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
               >
                 {[
                   { href: "/command", icon: Terminal, label: "Command Center" },
@@ -163,6 +163,7 @@ export default function HomePage() {
                   { href: "/swarm", icon: Network, label: "Swarm Agents" },
                   { href: "/redteam", icon: Shield, label: "Red Team" },
                   { href: "/voqn", icon: Zap, label: "VoQN Network" },
+                  { href: "/collaboration", icon: Users, label: "Collaboration" },
                 ].map((item, i) => (
                   <Link key={item.href} href={item.href}>
                     <motion.div
