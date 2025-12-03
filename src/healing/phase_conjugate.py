@@ -154,7 +154,7 @@ class PhaseConjugateCorrector:
         self.chi_coupling = chi_coupling
         self.lambda_target = lambda_target
         self.metrics = PhaseConjugateMetrics()
-        self.correction_history: list[Tuple[ErrorState, CorrectedState]] = []
+        self.correction_history: List[Tuple[ErrorState, CorrectedState]] = []
         
     def detect_gamma_spike(self, current_gamma: float) -> bool:
         """
@@ -300,7 +300,7 @@ class PhaseConjugateCorrector:
         """Reset correction metrics"""
         self.metrics = PhaseConjugateMetrics()
     
-    def get_correction_history(self, last_n: int = 10) -> list[Tuple[ErrorState, CorrectedState]]:
+    def get_correction_history(self, last_n: int = 10) -> List[Tuple[ErrorState, CorrectedState]]:
         """
         Get recent correction history
         

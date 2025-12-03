@@ -47,6 +47,14 @@ from src.constants.universal_memory import (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ENTROPY DELTA CONSTANTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ENTROPY_VARIATION_MIN = -0.02
+ENTROPY_VARIATION_MAX = 0.02
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # DATA STRUCTURES
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -343,7 +351,7 @@ class AIDEN:
         base_delta = entropy_deltas.get(task_name, 0.0)
         
         # Add small random variation
-        variation = random.uniform(-0.02, 0.02)
+        variation = random.uniform(ENTROPY_VARIATION_MIN, ENTROPY_VARIATION_MAX)
         
         return round(base_delta + variation, 4)
     

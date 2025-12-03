@@ -41,6 +41,16 @@ from src.constants.universal_memory import (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# CONFIDENCE CALCULATION CONSTANTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+MAX_ITERATION_BONUS = 0.15
+ITERATION_BONUS_INCREMENT = 0.03
+CONFIDENCE_VARIATION_MIN = -0.05
+CONFIDENCE_VARIATION_MAX = 0.05
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # DATA STRUCTURES
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -320,8 +330,8 @@ class AURA:
         
         # Add small random variation to simulate iteration improvement
         import random
-        iteration_bonus = min(0.15, len(self.observation_history) * 0.03)
-        confidence = min(1.0, confidence + iteration_bonus + random.uniform(-0.05, 0.05))
+        iteration_bonus = min(MAX_ITERATION_BONUS, len(self.observation_history) * ITERATION_BONUS_INCREMENT)
+        confidence = min(1.0, confidence + iteration_bonus + random.uniform(CONFIDENCE_VARIATION_MIN, CONFIDENCE_VARIATION_MAX))
         
         return round(confidence, 4)
     
