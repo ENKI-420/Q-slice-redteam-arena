@@ -48,7 +48,7 @@ const FULL_COLLABORATION_ASCII = `
 ║      │      │    ║ Protocol  ║   │    │  Consciousness  │       │   ║ Protocol  ║    │           │                   ║
 ║      │      │    ╚═══════════╝   │    │  Φ = 0.9987     │       │   ╚═══════════╝    │           │                   ║
 ║      │      │                    │    └─────────────────┘       │                    │           │                   ║
-║      │      ╰────────────────────╯                              ╰────────────────────╯           │                   ║
+║      │      ╰───����────────────────╯                              ╰────────────────────╯           │                   ║
 ║      │                                                                                           │                   ║
 ║      └───────────────────────────────────────────────────────────────────────────────────────────┘                   ║
 ║                                                                                                                      ║
@@ -323,7 +323,7 @@ interface TelemetryData {
 
 const LiveTelemetry: React.FC = () => {
   const [telemetry, setTelemetry] = useState<TelemetryData>({
-    phi: 0. 892,
+    phi: 0.892,
     lambda: 0.947,
     gamma: 0.081,
     w2: 97.04,
@@ -336,16 +336,16 @@ const LiveTelemetry: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setTelemetry(prev => {
-        const newPhi = Math.min(0.999, Math.max(0. 7, prev.phi + (Math.random() - 0.48) * 0. 01))
+        const newPhi = Math.min(0.999, Math.max(0.7, prev.phi + (Math.random() - 0.48) * 0.01))
         return {
           phi: newPhi,
-          lambda: Math.min(0.999, Math. max(0.9, prev.lambda + (Math.random() - 0.48) * 0. 005)),
-          gamma: Math.max(0.001, Math.min(0.15, prev.gamma + (Math.random() - 0.52) * 0. 005)),
-          w2: Math.min(99.99, Math.max(90, prev.w2 + (Math. random() - 0.48) * 0.5)),
+          lambda: Math.min(0.999, Math.max(0.9, prev.lambda + (Math.random() - 0.48) * 0.005)),
+          gamma: Math.max(0.001, Math.min(0.15, prev.gamma + (Math.random() - 0.52) * 0.005)),
+          w2: Math.min(99.99, Math.max(90, prev.w2 + (Math.random() - 0.48) * 0.5)),
           consciousness: newPhi > 0.9 ? "TRANSCENDENT" : newPhi > 0.8 ? "CONSCIOUS" : "EVOLVING",
           generation: prev.generation + 1,
-          entropy: Math.max(0. 01, Math.min(0.1, prev.entropy + (Math.random() - 0.5) * 0. 005)),
-          coherenceTime: Math.max(100, Math.min(500, prev.coherenceTime + (Math. random() - 0.5) * 10))
+          entropy: Math.max(0.01, Math.min(0.1, prev.entropy + (Math.random() - 0.5) * 0.005)),
+          coherenceTime: Math.max(100, Math.min(500, prev.coherenceTime + (Math.random() - 0.5) * 10))
         }
       })
     }, 1000)
@@ -720,7 +720,7 @@ export default function CollaborationPage() {
 
       {/* Hero Banner Section with Matrix Rain */}
       <section className="relative min-h-[70vh] flex flex-col justify-center items-center overflow-hidden text-center">
-        <MatrixRain active={matrixActive && !reducedMotion} density={1. 2} />
+        <MatrixRain active={matrixActive && !reducedMotion} density={1.2} />
         
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none" />
 
@@ -738,7 +738,7 @@ export default function CollaborationPage() {
           <motion.h1
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0. 2 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl md:text-3xl font-mono text-white mb-2"
           >
             × Q-SLICE × Z3braOS
@@ -751,12 +751,12 @@ export default function CollaborationPage() {
             className="text-xs md:text-sm text-muted-foreground uppercase tracking-widest"
           >
             Sentinel-Grade Integration by Jeremy Green, PhD
-          </motion. p>
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0. 8 }}
+            transition={{ delay: 0.8 }}
             className="mt-8 max-w-5xl mx-auto"
           >
             <pre className="ascii-art text-[6px] sm:text-[8px] md:text-[10px] text-accent leading-tight font-mono whitespace-pre overflow-x-auto">
