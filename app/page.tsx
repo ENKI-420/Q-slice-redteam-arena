@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Zap, Users } from "lucide-react"
+import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Zap, Users, Monitor } from "lucide-react"
 
 const ASCII_LOGO = `
 ██████╗ ███╗   ██╗ █████╗       ██╗      █████╗ ███╗   ██╗ ██████╗ 
@@ -158,6 +158,7 @@ export default function HomePage() {
               >
                 {[
                   { href: "/command", icon: Terminal, label: "Command Center" },
+                  { href: "/cockpit", icon: Monitor, label: "CLI Cockpit" },
                   { href: "/z3bra", icon: Smartphone, label: "z3braOS Terminal" },
                   { href: "/engineering", icon: Cpu, label: "Engineering" },
                   { href: "/swarm", icon: Network, label: "Swarm Agents" },

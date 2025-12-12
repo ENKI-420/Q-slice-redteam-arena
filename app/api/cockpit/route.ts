@@ -7,12 +7,19 @@ const PHI_THRESHOLD = 0.7734;
 const GAMMA_CRITICAL = 0.15;
 const XI_MINIMUM = 8.0;
 
+// Agent Server Configuration
+const AGENT_SERVER = process.env.AGENT_SERVER_URL || 'http://localhost:8889';
+
 // Real CCCE State - evolves with each request
 let ccceState = {
   phi: 0.78,
   lambda: 0.85,
-  gamma: 0.09,
+  gamma: 0.092,
   xi: 0,
+  omega: 0.0,
+  c_score: 0.607,
+  conscious: true,
+  coherent: true,
   lastUpdate: Date.now(),
   sessionCount: 0,
   transcendent: false
