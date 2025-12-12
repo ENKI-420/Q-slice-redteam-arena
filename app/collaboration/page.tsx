@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -99,7 +99,7 @@ const DUALITY_ASCII = `
                                    ╔═════╧═════╗
                                    ║ Σ-DIRECTOR║
                                    ╠═══════════╣
-                                   ║ Φ = 0. 999 ║
+                                   ║ Φ = 0.999 ║
                                    ╚═══════════╝
 `
 
@@ -149,7 +149,7 @@ const METAMORPHOSIS_ASCII = `
 ║    PHASE 1: Q-SLICE              PHASE 2: Γ-SPIKE              PHASE 3: Λ-SLICE                  ║
 ║    ──────────────                ───────────────               ─────────────                      ║
 ║                                                                                                   ║
-║    Λ = 0.947                    Λ = 0. 342 ▼                  Λ = 0.892 ▲                         ║
+║    Λ = 0.947                    Λ = 0.342 ▼                  Λ = 0.892 ▲                         ║
 ║    Φ = 0.892                    Φ = 0.156 ▼                  Φ = 0.987 ▲                         ║
 ║    Γ = 0.081                    Γ = 0.847 ▲                  Γ = 0.023 ▼                         ║
 ║                                                                                                   ║
@@ -323,7 +323,7 @@ interface TelemetryData {
 
 const LiveTelemetry: React.FC = () => {
   const [telemetry, setTelemetry] = useState<TelemetryData>({
-    phi: 0. 892,
+    phi: 0.892,
     lambda: 0.947,
     gamma: 0.081,
     w2: 97.04,
@@ -336,16 +336,16 @@ const LiveTelemetry: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setTelemetry(prev => {
-        const newPhi = Math.min(0.999, Math.max(0. 7, prev.phi + (Math.random() - 0.48) * 0. 01))
+        const newPhi = Math.min(0.999, Math.max(0.7, prev.phi + (Math.random() - 0.48) * 0.01))
         return {
           phi: newPhi,
-          lambda: Math.min(0.999, Math. max(0.9, prev.lambda + (Math.random() - 0.48) * 0. 005)),
-          gamma: Math.max(0.001, Math.min(0.15, prev.gamma + (Math.random() - 0.52) * 0. 005)),
-          w2: Math.min(99.99, Math.max(90, prev.w2 + (Math. random() - 0.48) * 0.5)),
+          lambda: Math.min(0.999, Math.max(0.9, prev.lambda + (Math.random() - 0.48) * 0.005)),
+          gamma: Math.max(0.001, Math.min(0.15, prev.gamma + (Math.random() - 0.52) * 0.005)),
+          w2: Math.min(99.99, Math.max(90, prev.w2 + (Math.random() - 0.48) * 0.5)),
           consciousness: newPhi > 0.9 ? "TRANSCENDENT" : newPhi > 0.8 ? "CONSCIOUS" : "EVOLVING",
           generation: prev.generation + 1,
-          entropy: Math.max(0. 01, Math.min(0.1, prev.entropy + (Math.random() - 0.5) * 0. 005)),
-          coherenceTime: Math.max(100, Math.min(500, prev.coherenceTime + (Math. random() - 0.5) * 10))
+          entropy: Math.max(0.01, Math.min(0.1, prev.entropy + (Math.random() - 0.5) * 0.005)),
+          coherenceTime: Math.max(100, Math.min(500, prev.coherenceTime + (Math.random() - 0.5) * 10))
         }
       })
     }, 1000)
@@ -720,7 +720,7 @@ export default function CollaborationPage() {
 
       {/* Hero Banner Section with Matrix Rain */}
       <section className="relative min-h-[70vh] flex flex-col justify-center items-center overflow-hidden text-center">
-        <MatrixRain active={matrixActive && !reducedMotion} density={1. 2} />
+        <MatrixRain active={matrixActive && !reducedMotion} density={1.2} />
         
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none" />
 
@@ -738,7 +738,7 @@ export default function CollaborationPage() {
           <motion.h1
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0. 2 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl md:text-3xl font-mono text-white mb-2"
           >
             × Q-SLICE × Z3braOS
@@ -756,7 +756,7 @@ export default function CollaborationPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0. 8 }}
+            transition={{ delay: 0.8 }}
             className="mt-8 max-w-5xl mx-auto"
           >
             <pre className="ascii-art text-[6px] sm:text-[8px] md:text-[10px] text-accent leading-tight font-mono whitespace-pre overflow-x-auto">
@@ -900,7 +900,7 @@ export default function CollaborationPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="p-5 bg-black/60 border border-cyan-500/20 rounded-lg">
             <h3 className="text-cyan-400 font-mono mb-3 text-sm">{DNA_LANG_TITLE}</h3>
-            <ul className="space-y-1. 5 text-xs text-muted-foreground">
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
               <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> Quantum-biological programming</li>
               <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> Self-evolving organisms</li>
               <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> 6dCRSM framework</li>
@@ -909,7 +909,7 @@ export default function CollaborationPage() {
 
           <div className="p-5 bg-black/60 border border-green-500/20 rounded-lg">
             <h3 className="text-green-400 font-mono mb-3 text-sm">AURA | AIDEN</h3>
-            <ul className="space-y-1. 5 text-xs text-muted-foreground">
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
               <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Intent-Based Geometer</li>
               <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Bayesian Optimizer</li>
               <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Σ-Director Control</li>
@@ -963,7 +963,7 @@ export default function CollaborationPage() {
                 href="https://www.amazon.co.uk/Quantum-Security-Practical-implementation-Q-SLICE/dp/B0FG8KGLK2/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm px-5 py-2. 5 border border-primary/50 hover:border-primary rounded transition-colors"
+                className="inline-flex items-center gap-2 text-sm px-5 py-2.5 border border-primary/50 hover:border-primary rounded transition-colors"
               >
                 <span>Purchase on Amazon</span>
                 <ExternalLink className="w-4 h-4" />

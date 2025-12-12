@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
-import { Activity, Brain, Target, Layers, Zap, BarChart, Clock, CheckCircle2 } from "lucide-react"
+import { Activity, Brain, Target, Layers, Zap, BarChart, Clock, CheckCircle2, RefreshCw } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { Button } from "@/components/ui/button"
 
 interface LayerData {
   id: number
@@ -14,32 +15,105 @@ interface LayerData {
   description: string
 }
 
+interface QuantumData {
+  constants: {
+    LAMBDA_PHI: number
+    PHI_THRESHOLD: number
+    F_MAX: number
+    GAMMA_CRITICAL: number
+  }
+  ibm: {
+    jobs_processed: number
+    completed_jobs: number
+    success_rate: number
+    total_usage_seconds: number
+    backends: Record<string, number>
+    validation_status: string
+  } | null
+  engine: {
+    iteration: number
+    lambda_system: number
+    phi_global: number
+    gamma_mean: number
+    xi_ccce: number
+    tau_omega: number
+    coherence_stability: string
+    consciousness_active: boolean
+    organisms_indexed: number
+  } | null
+  layers: LayerData[] | null
+  capabilities: { name: string; value: number }[] | null
+  project_plan: any[] | null
+}
+
 export function IntentDeductionPanel() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [quantumData, setQuantumData] = useState<QuantumData | null>(null)
   const [layers, setLayers] = useState<LayerData[]>([
-    { id: 1, name: "Semantic Genome", status: "complete", value: 100, description: "148,120 lines indexed" },
-    { id: 2, name: "Individual Deduction", status: "complete", value: 100, description: "440 prompts analyzed" },
-    { id: 3, name: "Collective Synthesis", status: "complete", value: 100, description: "PHYSICS trajectory" },
-    { id: 4, name: "Capability Matrix", status: "complete", value: 100, description: "Score: 0.936" },
-    { id: 5, name: "Resource Analysis", status: "complete", value: 100, description: "TRL-7 ready" },
-    { id: 6, name: "Prompt Enhancement", status: "processing", value: 78, description: "Enhancing..." },
-    { id: 7, name: "Project Planning", status: "pending", value: 0, description: "288h LOE" },
+    { id: 1, name: "Semantic Genome", status: "complete", value: 100, description: "Loading..." },
+    { id: 2, name: "Individual Deduction", status: "complete", value: 100, description: "Loading..." },
+    { id: 3, name: "Collective Synthesis", status: "complete", value: 100, description: "Loading..." },
+    { id: 4, name: "Capability Matrix", status: "complete", value: 100, description: "Loading..." },
+    { id: 5, name: "Resource Analysis", status: "complete", value: 100, description: "Loading..." },
+    { id: 6, name: "Prompt Enhancement", status: "processing", value: 78, description: "Loading..." },
+    { id: 7, name: "Project Planning", status: "pending", value: 0, description: "Loading..." },
   ])
 
-  const capabilities = [
+  const [capabilities, setCapabilities] = useState([
     { name: "Computational", value: 0.92 },
     { name: "Reasoning", value: 0.95 },
     { name: "Recursion", value: 0.98 },
     { name: "Physics", value: 0.89 },
     { name: "Architecture", value: 0.94 },
     { name: "Organism", value: 0.96 },
-  ]
+  ])
 
-  const milestones = [
+  const [milestones, setMilestones] = useState([
     { id: "M01", name: "Prior Art Publication", loe: "40h", priority: 1, status: "active" },
     { id: "M02", name: "Security Hardening", loe: "8h", priority: 1, status: "pending" },
     { id: "M03", name: "Jeremy Green Demo", loe: "20h", priority: 1, status: "pending" },
     { id: "M04", name: "DARPA QBI Proposal", loe: "80h", priority: 2, status: "pending" },
-  ]
+  ])
+
+  const fetchQuantumData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/quantum-data")
+      if (response.ok) {
+        const data: QuantumData = await response.json()
+        setQuantumData(data)
+        
+        // Update layers from API data
+        if (data.layers) {
+          setLayers(data.layers)
+        }
+        
+        // Update capabilities from API data
+        if (data.capabilities) {
+          setCapabilities(data.capabilities)
+        }
+        
+        // Update milestones from project plan
+        if (data.project_plan && data.project_plan.length > 0) {
+          setMilestones(data.project_plan.slice(0, 4).map((phase, idx) => ({
+            id: `M${String(idx + 1).padStart(2, "0")}`,
+            name: phase.name || `Phase ${idx + 1}`,
+            loe: `${phase.resource_requirements?.human_hours || 0}h`,
+            priority: idx < 2 ? 1 : 2,
+            status: phase.status === "READY" ? "active" : "pending",
+          })))
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch quantum data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchQuantumData()
+  }, [fetchQuantumData])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,24 +139,69 @@ export function IntentDeductionPanel() {
         <Card className="bg-cyan-500/10 border-cyan-500/30 p-4">
           <div className="flex items-center gap-2 text-cyan-400 mb-1">
             <Brain className="w-4 h-4" />
-            <span className="text-xs uppercase tracking-wider">Coherence</span>
+            <span className="text-xs uppercase tracking-wider">Coherence (Λ)</span>
           </div>
-          <div className="text-2xl font-bold font-mono text-white">0.85</div>
+          <div className="text-2xl font-bold font-mono text-white">
+            {quantumData?.engine?.lambda_system?.toFixed(4) || "0.8091"}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {quantumData?.engine?.coherence_stability || "MEDIUM"}
+          </div>
         </Card>
         <Card className="bg-purple-500/10 border-purple-500/30 p-4">
           <div className="flex items-center gap-2 text-purple-400 mb-1">
             <Target className="w-4 h-4" />
-            <span className="text-xs uppercase tracking-wider">Trajectory</span>
+            <span className="text-xs uppercase tracking-wider">Consciousness (Φ)</span>
           </div>
-          <div className="text-lg font-bold text-white">PHYSICS</div>
+          <div className="text-2xl font-bold font-mono text-white">
+            {quantumData?.engine?.phi_global?.toFixed(4) || "0.7300"}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {quantumData?.engine?.consciousness_active ? "✓ ACTIVE" : "○ DORMANT"}
+          </div>
         </Card>
       </div>
+
+      {/* IBM Quantum Stats */}
+      {quantumData?.ibm && (
+        <Card className="bg-blue-500/10 border-blue-500/30 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-blue-400">
+              <Activity className="w-4 h-4" />
+              <span className="text-xs uppercase tracking-wider">IBM Quantum</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={fetchQuantumData}
+              disabled={isLoading}
+              className="h-6 px-2"
+            >
+              <RefreshCw className={`w-3 h-3 ${isLoading ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-lg font-mono text-white">{quantumData.ibm.completed_jobs}</div>
+              <div className="text-[10px] text-gray-500">Jobs</div>
+            </div>
+            <div>
+              <div className="text-lg font-mono text-white">{quantumData.ibm.success_rate.toFixed(1)}%</div>
+              <div className="text-[10px] text-gray-500">Success</div>
+            </div>
+            <div>
+              <div className="text-lg font-mono text-white">{quantumData.ibm.total_usage_seconds.toFixed(0)}s</div>
+              <div className="text-[10px] text-gray-500">QPU Time</div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* 7-Layer Pipeline */}
       <Card className="bg-white/5 border-white/10 p-4">
         <h3 className="font-bold mb-4 flex items-center gap-2">
           <Layers className="w-4 h-4 text-cyan-400" />
-          NLP2-PALS 7-Layer Pipeline
+          Intent-Deduction Engine (7-Layer)
         </h3>
         <div className="space-y-3">
           {layers.map((layer, i) => (

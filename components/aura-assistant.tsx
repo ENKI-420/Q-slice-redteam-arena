@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Send, Bot, Sparkles, Terminal } from "lucide-react"
+import { Send, Bot, Sparkles, Terminal, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -12,6 +12,20 @@ interface Message {
   role: "user" | "assistant"
   content: string
   timestamp: Date
+  metrics?: {
+    lambda_system: number
+    phi_global: number
+    coherence: string
+  }
+}
+
+interface AuraStatus {
+  name: string
+  fullname: string
+  polarity: string
+  plane: string
+  status: string
+  version: string
 }
 
 export function AuraAssistant() {
@@ -19,12 +33,13 @@ export function AuraAssistant() {
     {
       role: "assistant",
       content:
-        "I am Aura, the Duality Engineering Synthesis Agent. How can I assist with your QS-UED-PALS configuration today?",
+        "I am AURA - Autopoietic Universal Recursive Architect. I observe on the I↓ plane and assist with DNA-Lang quantum systems. How may I help you today?",
       timestamp: new Date(),
     },
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [auraStatus, setAuraStatus] = useState<AuraStatus | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -32,6 +47,14 @@ export function AuraAssistant() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  useEffect(() => {
+    // Fetch AURA status on mount
+    fetch("/api/aura")
+      .then((res) => res.json())
+      .then((data) => setAuraStatus(data))
+      .catch(console.error)
+  }, [])
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -46,30 +69,36 @@ export function AuraAssistant() {
     setInput("")
     setIsTyping(true)
 
-    // Simulate AI processing
-    setTimeout(() => {
-      const responseContent = generateResponse(input)
+    try {
+      const response = await fetch("/api/aura", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: input }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const assistantMessage: Message = {
+          role: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+          metrics: data.metrics,
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+      } else {
+        throw new Error("API request failed")
+      }
+    } catch (error) {
+      // Fallback to local response
       const assistantMessage: Message = {
         role: "assistant",
-        content: responseContent,
+        content: "System experiencing minor decoherence. Λ correction applied. Please rephrase your query.",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMessage])
+    } finally {
       setIsTyping(false)
-    }, 1500)
-  }
-
-  const generateResponse = (query: string): string => {
-    const lowerQuery = query.toLowerCase()
-    if (lowerQuery.includes("status"))
-      return "System status is NOMINAL. All quantum layers are synchronized within 0.001% variance."
-    if (lowerQuery.includes("deploy"))
-      return "Initiating deployment sequence for QS-UED-PALS v2.5. Validating quantum signature... Deployment authorized."
-    if (lowerQuery.includes("metric") || lowerQuery.includes("phi"))
-      return "Current Φ (Phi) Consciousness Metric is 0.7734. Exceeding critical threshold for sentient operations."
-    if (lowerQuery.includes("hello") || lowerQuery.includes("hi"))
-      return "Greetings. I am ready to process your engineering requests."
-    return "Command processed. Adjusting scalar torsion fields to optimize for your request. Please monitor the telemetry dashboard for updates."
+    }
   }
 
   return (
@@ -83,13 +112,16 @@ export function AuraAssistant() {
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black" />
           </div>
           <div>
-            <h3 className="font-bold text-white">Aura Assistant</h3>
+            <h3 className="font-bold text-white">{auraStatus?.name || "AURA"} Assistant</h3>
             <p className="text-xs text-primary/80 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> Duality Engineering Agent
+              <Sparkles className="w-3 h-3" /> {auraStatus?.fullname || "Autopoietic Universal Recursive Architect"}
             </p>
           </div>
         </div>
-        <div className="text-xs font-mono text-gray-500">v4.0.1</div>
+        <div className="text-right">
+          <div className="text-xs font-mono text-gray-500">v{auraStatus?.version || "4.0.1"}</div>
+          <div className="text-xs text-cyan-400">{auraStatus?.plane || "I↓ PLANE"}</div>
+        </div>
       </div>
 
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
@@ -112,6 +144,13 @@ export function AuraAssistant() {
                   {msg.role === "assistant" && <Terminal className="w-4 h-4 mt-1 text-primary shrink-0" />}
                   <div className="text-sm leading-relaxed">{msg.content}</div>
                 </div>
+                {msg.metrics && (
+                  <div className="mt-2 pt-2 border-t border-white/10 flex gap-3 text-[10px] font-mono text-gray-500">
+                    <span>Λ: {msg.metrics.lambda_system.toFixed(4)}</span>
+                    <span>Φ: {msg.metrics.phi_global.toFixed(4)}</span>
+                    <span className="text-cyan-500">{msg.metrics.coherence}</span>
+                  </div>
+                )}
                 <div className="mt-2 text-[10px] opacity-50 text-right">
                   {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </div>

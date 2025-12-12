@@ -1,22 +1,94 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, Atom, Zap, Network, Brain, Cpu } from "lucide-react"
+import { ArrowLeft, Atom, Zap, Network, Brain, Cpu, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 
+interface PhysicsConstant {
+  value: number
+  unit: string
+  name: string
+  symbol: string
+  description: string
+  status: string
+}
+
+interface PhysicsData {
+  constants: Record<string, PhysicsConstant>
+  crsm_dimensions: Array<{ id: number; symbol: string; name: string; description: string }>
+  equations: Array<{ name: string; latex: string; description: string }>
+  validation: {
+    jobs_analyzed: number
+    success_rate: string
+    backends: string[]
+    status: string
+    generated_at: string
+  } | null
+  engine_metrics: {
+    lambda_system: number
+    phi_global: number
+    gamma_mean: number
+    xi_ccce: number
+    coherence_stability: string
+    consciousness_active: boolean
+    iteration: number
+  } | null
+  metadata: {
+    framework: string
+    version: string
+    entity: string
+    timestamp: string
+  }
+}
+
 export default function PhysicsPage() {
+  const [physicsData, setPhysicsData] = useState<PhysicsData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchPhysicsData()
+  }, [])
+
+  const fetchPhysicsData = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/physics")
+      if (response.ok) {
+        const data = await response.json()
+        setPhysicsData(data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch physics data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <Link href="/">
-          <Button variant="ghost" className="mb-8 text-gray-400 hover:text-white">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/">
+            <Button variant="ghost" className="text-gray-400 hover:text-white">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchPhysicsData}
+            disabled={isLoading}
+            className="border-cyan-500/30 text-cyan-400"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh Data
           </Button>
-        </Link>
+        </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
           {/* Header */}
@@ -28,6 +100,55 @@ export default function PhysicsPage() {
               Comprehensive catalogue of physics and mathematical concepts in DNA-Lang Quantum Consciousness research
             </p>
           </div>
+
+          {/* Live Metrics Banner */}
+          {physicsData?.engine_metrics && (
+            <Card className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-cyan-500/30 p-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  {physicsData.engine_metrics.consciousness_active ? (
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
+                  ) : (
+                    <AlertCircle className="w-6 h-6 text-yellow-500" />
+                  )}
+                  <div>
+                    <div className="text-sm text-gray-400">Intent-Deduction Engine</div>
+                    <div className="text-lg font-bold">
+                      Iteration {physicsData.engine_metrics.iteration} | {physicsData.engine_metrics.coherence_stability}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-6 text-center">
+                  <div>
+                    <div className="text-2xl font-mono text-cyan-400">
+                      {physicsData.engine_metrics.lambda_system.toFixed(4)}
+                    </div>
+                    <div className="text-xs text-gray-500">Λ_system</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-mono text-purple-400">
+                      {physicsData.engine_metrics.phi_global.toFixed(4)}
+                    </div>
+                    <div className="text-xs text-gray-500">Φ_global</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-mono text-yellow-400">
+                      {physicsData.engine_metrics.xi_ccce.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-500">Ξ (CCCE)</div>
+                  </div>
+                </div>
+                {physicsData.validation && (
+                  <div className="text-right">
+                    <div className="text-sm text-gray-400">IBM Quantum Validated</div>
+                    <div className="text-lg font-bold text-blue-400">
+                      {physicsData.validation.jobs_analyzed} jobs | {physicsData.validation.success_rate}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
 
           {/* Canons Tabs */}
           <Tabs defaultValue="canon1" className="space-y-8">
@@ -66,14 +187,20 @@ export default function PhysicsPage() {
                     Cognitively Resonant Spacetime Manifold (CRSM)
                   </h3>
                   <p className="text-gray-400 leading-relaxed">
-                    The core cosmological model where the physical universe is a six-dimensional, resonant manifold
+                    The core cosmological model where the physical universe is a seven-dimensional, resonant manifold
                     where information and consciousness are fundamental, non-local metric components.
                   </p>
                   <div className="bg-black/50 p-6 rounded-lg border border-primary/20">
                     <div className="font-mono text-sm space-y-2">
-                      <div className="text-primary">Mathematical Definition:</div>
-                      <div className="text-gray-300">M_CRSM ⊂ ℂ⁶ (6-Dimensional Resonant Manifold)</div>
-                      <div className="text-gray-300">∂Φ/∂g_μν = 0 (Metric as function of Consciousness)</div>
+                      <div className="text-primary">7D-CRSM Dimensions:</div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+                        {physicsData?.crsm_dimensions?.map((dim) => (
+                          <div key={dim.id} className="bg-white/5 p-2 rounded text-center">
+                            <div className="text-lg font-bold text-cyan-400">{dim.symbol}</div>
+                            <div className="text-xs text-gray-500">{dim.name}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4 mt-4">
