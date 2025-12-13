@@ -35,32 +35,33 @@ interface QiskitJobResponse {
 // Cache for IBM access token (valid for ~1 hour)
 let ibmAccessTokenCache: { token: string; expires: number } | null = null
 
-async function getIBMAccessToken(apiKey: string): Promise<string> {
+async function getIBMAccessToken(apiToken: string): Promise<string> {
   // Check cache first
   if (ibmAccessTokenCache && Date.now() < ibmAccessTokenCache.expires) {
     return ibmAccessTokenCache.token
   }
 
-  // Exchange API key for access token
-  const authResponse = await fetch('https://iam.cloud.ibm.com/identity/token', {
+  // IBM Quantum Platform tokens need to be exchanged via quantum-computing.ibm.com
+  const authResponse = await fetch('https://auth.quantum-computing.ibm.com/api/users/loginWithToken', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: new URLSearchParams({
-      grant_type: 'urn:ibm:params:oauth:grant-type:apikey',
-      apikey: apiKey
-    })
+    body: JSON.stringify({ apiToken })
   })
 
   if (!authResponse.ok) {
     const errorText = await authResponse.text()
-    throw new Error(`IBM auth failed: ${authResponse.status} - ${errorText}`)
+    throw new Error(`IBM Quantum auth failed: ${authResponse.status} - ${errorText}`)
   }
 
   const authData = await authResponse.json()
-  const accessToken = authData.access_token
+  const accessToken = authData.id  // IBM Quantum returns 'id' as the session token
+
+  if (!accessToken) {
+    throw new Error('IBM Quantum auth: No access token in response')
+  }
 
   // Cache for 50 minutes (token valid for 60)
   ibmAccessTokenCache = {
