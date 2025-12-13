@@ -8,23 +8,52 @@
  * CAGE: 9HUP5 | Agile Defense Systems, LLC
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUPABASE CLIENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-// Client-side Supabase client (anon key)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+// Lazy-initialized Supabase client singleton
+let _supabase: SupabaseClient | null = null
+
+// Client-side Supabase client (anon key) - lazy initialization for SSG compatibility
+export const supabase = (() => {
+  // Return a proxy that creates the client on first use
+  if (typeof window === 'undefined' && (!supabaseUrl || !supabaseAnonKey)) {
+    // During SSG build, return a mock client that throws on actual use
+    return {
+      auth: {
+        signInWithPassword: async () => { throw new Error('Supabase not configured for SSG') },
+        signUp: async () => { throw new Error('Supabase not configured for SSG') },
+        signInWithOtp: async () => { throw new Error('Supabase not configured for SSG') },
+        signOut: async () => { throw new Error('Supabase not configured for SSG') },
+        getUser: async () => ({ data: { user: null }, error: null }),
+        getSession: async () => ({ data: { session: null }, error: null }),
+        resetPasswordForEmail: async () => { throw new Error('Supabase not configured for SSG') },
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+      },
+      from: () => ({
+        select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) })
+      })
+    } as unknown as SupabaseClient
   }
-})
+
+  if (!_supabase && supabaseUrl && supabaseAnonKey) {
+    _supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    })
+  }
+
+  return _supabase!
+})()
 
 // Server-side Supabase client (service role key)
 export function createServerSupabase() {
