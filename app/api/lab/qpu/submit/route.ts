@@ -41,35 +41,40 @@ async function getIBMAccessToken(apiToken: string): Promise<string> {
     return ibmAccessTokenCache.token
   }
 
-  // IBM Quantum Platform tokens need to be exchanged via quantum-computing.ibm.com
-  const authResponse = await fetch('https://auth.quantum-computing.ibm.com/api/users/loginWithToken', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify({ apiToken })
-  })
+  try {
+    // IBM Quantum Platform tokens need to be exchanged via quantum-computing.ibm.com
+    const authResponse = await fetch('https://auth.quantum-computing.ibm.com/api/users/loginWithToken', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ apiToken })
+    })
 
-  if (!authResponse.ok) {
-    const errorText = await authResponse.text()
-    throw new Error(`IBM Quantum auth failed: ${authResponse.status} - ${errorText}`)
+    if (!authResponse.ok) {
+      const errorText = await authResponse.text()
+      throw new Error(`IBM Quantum auth failed: ${authResponse.status} - ${errorText}`)
+    }
+
+    const authData = await authResponse.json()
+    const accessToken = authData.id  // IBM Quantum returns 'id' as the session token
+
+    if (!accessToken) {
+      throw new Error('IBM Quantum auth: No access token in response')
+    }
+
+    // Cache for 50 minutes (token valid for 60)
+    ibmAccessTokenCache = {
+      token: accessToken,
+      expires: Date.now() + 50 * 60 * 1000
+    }
+
+    return accessToken
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown'
+    throw new Error(`IBM auth error: ${msg}`)
   }
-
-  const authData = await authResponse.json()
-  const accessToken = authData.id  // IBM Quantum returns 'id' as the session token
-
-  if (!accessToken) {
-    throw new Error('IBM Quantum auth: No access token in response')
-  }
-
-  // Cache for 50 minutes (token valid for 60)
-  ibmAccessTokenCache = {
-    token: accessToken,
-    expires: Date.now() + 50 * 60 * 1000
-  }
-
-  return accessToken
 }
 
 async function submitToQiskitRuntime(
@@ -127,7 +132,10 @@ async function submitToQiskitRuntime(
     }
 
   } catch (error) {
-    throw new Error(`Qiskit Runtime submission failed: ${error instanceof Error ? error.message : 'Unknown'}`)
+    const errorMsg = error instanceof Error
+      ? `${error.message}${error.cause ? ` (cause: ${error.cause})` : ''}`
+      : 'Unknown'
+    throw new Error(`Qiskit Runtime submission failed: ${errorMsg}`)
   }
 }
 
