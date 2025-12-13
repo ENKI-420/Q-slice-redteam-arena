@@ -1,642 +1,562 @@
-'use client';
+"use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import Link from "next/link"
 import {
-  ArrowLeft, Mouse, Settings, Zap, Play, Save, RefreshCw,
-  CheckCircle2, XCircle, Terminal, FileText, Navigation, Atom,
-  Users, Code, Cpu, Activity, Lock, Radio
-} from 'lucide-react';
+  Cpu,
+  Activity,
+  Zap,
+  Server,
+  Play,
+  Square,
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Gauge,
+  ArrowLeft,
+  Send,
+  Terminal,
+  Shield,
+} from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 
-/**
- * Scimitar Elite Configuration Page
- * =================================
- * 12-button programmable mouse integration for Q-SLICE workflow
- *
- * SPEC_LOCK v2.2.0 | CAGE: 9HUP5 | Agile Defense Systems, LLC
- */
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// TYPES
-// ═══════════════════════════════════════════════════════════════════════════════
-
-type ActionCategory = 'file' | 'navigation' | 'quantum' | 'terminal' | 'agent' | 'custom';
-
-interface ButtonAction {
-  id: string;
-  name: string;
-  description: string;
-  category: ActionCategory;
-  shortcut?: string;
-  command?: string;
-  api_endpoint?: string;
-  agent_id?: string;
+// Physical constants
+const CONSTANTS = {
+  PHI: 1.618033988749895,
+  TAU_0: Math.pow(1.618033988749895, 8),
+  PHI_THRESHOLD: 0.7734,
+  GAMMA_CRITICAL: 0.300,
+  DELTA_WINDOW: 2.5,
 }
 
-interface ButtonBinding {
-  button: number;
-  action: ButtonAction;
-  enabled: boolean;
+interface Backend {
+  id: string
+  name: string
+  provider: string
+  architecture: string
+  qubits: number
+  status: string
+  pending_jobs: number
+  max_shots: number
+  t1_avg: number
+  t2_avg: number
+  gate_fidelity: number
+  readout_fidelity: number
+  ccce: {
+    lambda: number
+    phi: number
+    gamma: number
+    xi: number
+  }
 }
 
-interface ScimitarProfile {
-  id: string;
-  name: string;
-  description: string;
-  bindings: ButtonBinding[];
-  created_at: string;
-  active: boolean;
-}
-
-interface DeviceStatus {
-  name: string;
-  buttons: number;
-  connected: boolean;
-  firmware: string;
-}
-
-interface ExecuteResult {
-  button: number;
-  action: ButtonAction;
-  timestamp: string;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CATEGORY STYLING
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const CATEGORY_CONFIG: Record<ActionCategory, { color: string; icon: typeof FileText; label: string }> = {
-  file: { color: '#00ff88', icon: FileText, label: 'File Ops' },
-  navigation: { color: '#00fff6', icon: Navigation, label: 'Navigation' },
-  quantum: { color: '#ff00bb', icon: Atom, label: 'Quantum' },
-  terminal: { color: '#ffbb00', icon: Terminal, label: 'Terminal' },
-  agent: { color: '#bb00ff', icon: Users, label: 'Agents' },
-  custom: { color: '#ff6600', icon: Code, label: 'Custom' }
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════════
-
-export default function ScimitarPage() {
-  // State
-  const [device, setDevice] = useState<DeviceStatus | null>(null);
-  const [profiles, setProfiles] = useState<ScimitarProfile[]>([]);
-  const [activeProfile, setActiveProfile] = useState<ScimitarProfile | null>(null);
-  const [availableActions, setAvailableActions] = useState<ButtonAction[]>([]);
-  const [selectedButton, setSelectedButton] = useState<number | null>(null);
-  const [executeHistory, setExecuteHistory] = useState<ExecuteResult[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [configMode, setConfigMode] = useState(false);
-
-  // Fetch device status and configuration
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await fetch('/api/scimitar');
-      if (!res.ok) throw new Error('Failed to fetch status');
-      const data = await res.json();
-      setDevice(data.device);
-      setActiveProfile(data.active_profile);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+interface Job {
+  id: string
+  backend: string
+  status: string
+  shots: number
+  circuits: number
+  submitted_at: string
+  started_at?: string
+  completed_at?: string
+  results?: {
+    tau_peak: number
+    tau_0: number
+    delta: number
+    within_window: boolean
+    counts: Record<string, number>
+    ccce: {
+      lambda: number
+      phi: number
+      gamma: number
+      xi: number
     }
-  }, []);
+  }
+}
 
-  const fetchProfiles = useCallback(async () => {
-    try {
-      const res = await fetch('/api/scimitar?action=profiles');
-      if (!res.ok) throw new Error('Failed to fetch profiles');
-      const data = await res.json();
-      setProfiles(data.profiles || []);
-    } catch (err) {
-      console.error('Failed to fetch profiles:', err);
-    }
-  }, []);
+export default function ScimitarElitePage() {
+  const [backends, setBackends] = useState<Backend[]>([])
+  const [selectedBackend, setSelectedBackend] = useState<Backend | null>(null)
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [aggregate, setAggregate] = useState<{
+    total_backends: number
+    online_backends: number
+    total_qubits: number
+    avg_gate_fidelity: number
+    total_pending_jobs: number
+  } | null>(null)
 
-  const fetchActions = useCallback(async () => {
-    try {
-      const res = await fetch('/api/scimitar?action=actions');
-      if (!res.ok) throw new Error('Failed to fetch actions');
-      const data = await res.json();
-      setAvailableActions(data.actions || []);
-    } catch (err) {
-      console.error('Failed to fetch actions:', err);
-    }
-  }, []);
-
-  // Initial fetch
+  // Fetch backends
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([fetchStatus(), fetchProfiles(), fetchActions()]);
-      setLoading(false);
-    };
-    init();
-  }, [fetchStatus, fetchProfiles, fetchActions]);
-
-  // Execute button action
-  const executeButton = async (button: number) => {
-    try {
-      const res = await fetch('/api/scimitar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'execute', button })
-      });
-      const data = await res.json();
-
-      if (data.success && data.executed) {
-        setExecuteHistory(prev => [data.executed, ...prev].slice(0, 10));
+    const fetchBackends = async () => {
+      try {
+        const res = await fetch('/api/scimitar')
+        const data = await res.json()
+        if (data.success) {
+          setBackends(data.backends)
+          setAggregate(data.aggregate)
+          if (!selectedBackend && data.backends.length > 0) {
+            setSelectedBackend(data.backends[0])
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch backends:', error)
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error('Execute failed:', err);
     }
-  };
 
-  // Switch profile
-  const switchProfile = async (profileId: string) => {
-    try {
-      const res = await fetch('/api/scimitar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'switch_profile', profile_id: profileId })
-      });
-      const data = await res.json();
+    fetchBackends()
+    const interval = setInterval(fetchBackends, 10000)
+    return () => clearInterval(interval)
+  }, [selectedBackend])
 
-      if (data.success) {
-        await fetchStatus();
-        await fetchProfiles();
-      }
-    } catch (err) {
-      console.error('Switch profile failed:', err);
-    }
-  };
+  // Submit job
+  const submitJob = async (experiment: string) => {
+    if (!selectedBackend) return
 
-  // Bind action to button
-  const bindAction = async (button: number, actionId: string) => {
+    setSubmitting(true)
     try {
       const res = await fetch('/api/scimitar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'bind',
-          button,
-          binding: { action_id: actionId, enabled: true }
+          backend: selectedBackend.id,
+          experiment,
+          shots: 2000,
+          circuits: experiment === 'tau-sweep' ? 13 : 1
         })
-      });
-      const data = await res.json();
-
+      })
+      const data = await res.json()
       if (data.success) {
-        await fetchStatus();
-        setSelectedButton(null);
+        // Poll for job status
+        pollJob(data.job_id)
       }
-    } catch (err) {
-      console.error('Bind failed:', err);
+    } catch (error) {
+      console.error('Failed to submit job:', error)
+    } finally {
+      setSubmitting(false)
     }
-  };
+  }
 
-  // Auto-configure
-  const autoConfig = async () => {
-    try {
-      const res = await fetch('/api/scimitar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'auto_configure' })
-      });
-      const data = await res.json();
-
+  // Poll job status
+  const pollJob = async (jobId: string) => {
+    const checkStatus = async () => {
+      const res = await fetch(`/api/scimitar?action=status&jobId=${jobId}`)
+      const data = await res.json()
       if (data.success) {
-        await fetchStatus();
-        await fetchProfiles();
+        setJobs(prev => {
+          const existing = prev.findIndex(j => j.id === jobId)
+          if (existing >= 0) {
+            const updated = [...prev]
+            updated[existing] = data.job
+            return updated
+          }
+          return [data.job, ...prev]
+        })
+
+        if (data.job.status !== 'completed' && data.job.status !== 'failed') {
+          setTimeout(checkStatus, 1000)
+        }
       }
-    } catch (err) {
-      console.error('Auto-configure failed:', err);
     }
-  };
+    checkStatus()
+  }
 
-  // Get binding for button
-  const getBinding = (button: number): ButtonBinding | undefined => {
-    return activeProfile?.bindings.find(b => b.button === button);
-  };
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online': return 'bg-green-500/20 text-green-400'
+      case 'busy': return 'bg-yellow-500/20 text-yellow-400'
+      case 'offline': return 'bg-red-500/20 text-red-400'
+      case 'maintenance': return 'bg-gray-500/20 text-gray-400'
+      case 'queued': return 'bg-blue-500/20 text-blue-400'
+      case 'running': return 'bg-cyan-500/20 text-cyan-400 animate-pulse'
+      case 'completed': return 'bg-green-500/20 text-green-400'
+      case 'failed': return 'bg-red-500/20 text-red-400'
+      default: return 'bg-gray-500/20 text-gray-400'
+    }
+  }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#020408] flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full"
-        />
-      </div>
-    );
+  const getProviderIcon = (provider: string) => {
+    switch (provider) {
+      case 'IBM_QUANTUM': return <Cpu className="w-5 h-5 text-blue-400" />
+      case 'AWS_BRAKET': return <Server className="w-5 h-5 text-orange-400" />
+      case 'SOVEREIGN': return <Shield className="w-5 h-5 text-cyan-400" />
+      default: return <Cpu className="w-5 h-5 text-gray-400" />
+    }
   }
 
   return (
-    <div className="min-h-screen bg-[#020408] text-gray-200 font-sans">
-      {/* ═══════════════ HEADER ═══════════════ */}
-      <header className="border-b border-white/5 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-6">
-          <div className="h-14 flex items-center justify-between">
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/cockpit" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-                <span className="text-[10px] uppercase tracking-widest hidden sm:inline">Cockpit</span>
+              <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+                <ArrowLeft className="w-5 h-5" />
               </Link>
-
               <div className="flex items-center gap-3">
-                <motion.div
-                  animate={{ scale: device?.connected ? [1, 1.1, 1] : 1 }}
-                  transition={{ repeat: device?.connected ? Infinity : 0, duration: 2 }}
-                  className={`w-2.5 h-2.5 rounded-full ${device?.connected ? 'bg-emerald-400' : 'bg-red-500'}`}
-                  style={{ boxShadow: device?.connected ? '0 0 12px #00ff88' : '0 0 12px #ef4444' }}
-                />
-                <h1 className="font-mono font-bold text-sm md:text-base tracking-wide text-white flex items-center gap-2">
-                  <Mouse className="w-4 h-4 text-cyan-400" />
-                  <span>SCIMITAR ELITE</span>
-                  <span className="text-pink-500">CONFIG</span>
-                </h1>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold">SCIMITAR Elite</h1>
+                  <p className="text-xs text-gray-500">Sovereign QPU Orchestration</p>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 font-mono text-[10px]">
-              <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-semibold border ${
-                device?.connected
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-red-500/10 border-red-500/30 text-red-400'
-              }`}>
-                <Radio className="w-3 h-3" />
-                {device?.connected ? 'CONNECTED' : 'DISCONNECTED'}
-              </span>
-              <div className="hidden md:block px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded text-amber-400 font-semibold text-[9px]">
+            <div className="flex items-center gap-4">
+              <Badge className={aggregate?.online_backends && aggregate.online_backends > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
+                <Activity className="w-3 h-3 mr-1" />
+                {aggregate?.online_backends || 0} Online
+              </Badge>
+              <Badge className="bg-purple-500/20 text-purple-400">
                 SPEC_LOCK v2.2.0
-              </div>
+              </Badge>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-[1600px] mx-auto w-full p-4 lg:p-6 space-y-5">
-        {/* ═══════════════ ERROR BANNER ═══════════════ */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-center gap-3"
-            >
-              <XCircle className="w-5 h-5 text-red-400" />
-              <span className="text-sm text-red-400">{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ═══════════════ TOP ROW: Device + Profile ═══════════════ */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Device Status */}
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-4">
-            <h3 className="font-mono font-bold text-sm text-cyan-400 flex items-center gap-2 mb-4">
-              <Cpu className="w-4 h-4" />
-              DEVICE STATUS
-            </h3>
-            <div className="space-y-3 font-mono text-sm">
-              <div className="flex justify-between">
-                <span className="text-white/50">Device:</span>
-                <span className="text-white">{device?.name || 'Unknown'}</span>
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Aggregate Stats */}
+        {aggregate && (
+          <div className="grid grid-cols-5 gap-4">
+            <Card className="bg-gray-900/50 border-gray-800 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <Server className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{aggregate.total_backends}</div>
+                  <div className="text-xs text-gray-500">Total Backends</div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-white/50">Buttons:</span>
-                <span className="text-cyan-400">{device?.buttons || 0}</span>
+            </Card>
+            <Card className="bg-gray-900/50 border-gray-800 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-400">{aggregate.online_backends}</div>
+                  <div className="text-xs text-gray-500">Online</div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-white/50">Firmware:</span>
-                <span className="text-white/70">{device?.firmware || 'N/A'}</span>
+            </Card>
+            <Card className="bg-gray-900/50 border-gray-800 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                  <Cpu className="w-5 h-5 text-cyan-400" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-cyan-400">{aggregate.total_qubits}</div>
+                  <div className="text-xs text-gray-500">Total Qubits</div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-white/50">Status:</span>
-                <span className={device?.connected ? 'text-emerald-400' : 'text-red-400'}>
-                  {device?.connected ? 'Online' : 'Offline'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Active Profile */}
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-mono font-bold text-sm text-pink-400 flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                ACTIVE PROFILE
-              </h3>
-              <button
-                onClick={() => setConfigMode(!configMode)}
-                className={`px-2 py-1 rounded text-[10px] font-mono transition-all ${
-                  configMode
-                    ? 'bg-pink-500/20 border border-pink-500/50 text-pink-400'
-                    : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'
-                }`}
-              >
-                {configMode ? 'EDITING' : 'CONFIGURE'}
-              </button>
-            </div>
-            <div className="space-y-3">
-              <div className="p-3 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-white/10 rounded-lg">
-                <div className="font-mono font-bold text-white">{activeProfile?.name || 'None'}</div>
-                <div className="text-[11px] text-white/50 mt-1">{activeProfile?.description || 'No profile selected'}</div>
-              </div>
-              <button
-                onClick={autoConfig}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-[11px] font-mono text-cyan-400 hover:bg-cyan-500/20 transition-all"
-              >
-                <RefreshCw className="w-3 h-3" />
-                AUTO-CONFIGURE OPTIMAL
-              </button>
-            </div>
-          </div>
-
-          {/* Profile Switcher */}
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-4">
-            <h3 className="font-mono font-bold text-sm text-amber-400 flex items-center gap-2 mb-4">
-              <Users className="w-4 h-4" />
-              PROFILES ({profiles.length})
-            </h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {profiles.map(profile => (
-                <button
-                  key={profile.id}
-                  onClick={() => switchProfile(profile.id)}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-all ${
-                    profile.active
-                      ? 'bg-emerald-500/15 border border-emerald-500/30'
-                      : 'bg-white/5 border border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div>
-                    <div className="font-mono text-[11px] font-bold text-white">{profile.name}</div>
-                    <div className="text-[9px] text-white/40">{profile.description}</div>
+            </Card>
+            <Card className="bg-gray-900/50 border-gray-800 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <Gauge className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-400">
+                    {(aggregate.avg_gate_fidelity * 100).toFixed(2)}%
                   </div>
-                  {profile.active && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════ BUTTON GRID ═══════════════ */}
-        <section className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-mono font-bold text-lg text-white flex items-center gap-2">
-              <Mouse className="w-5 h-5 text-cyan-400" />
-              12-BUTTON LAYOUT
-            </h3>
-            <div className="flex gap-2">
-              {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-                <div key={key} className="flex items-center gap-1.5 text-[9px] font-mono">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: config.color }} />
-                  <span className="text-white/40">{config.label}</span>
+                  <div className="text-xs text-gray-500">Avg Fidelity</div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Button Grid Visualization */}
-          <div className="bg-black/50 rounded-xl p-6 border border-white/5">
-            <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(button => {
-                const binding = getBinding(button);
-                const category = binding?.action.category || 'custom';
-                const config = CATEGORY_CONFIG[category];
-                const isSelected = selectedButton === button;
-
-                return (
-                  <motion.button
-                    key={button}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => configMode ? setSelectedButton(button) : executeButton(button)}
-                    className={`relative aspect-square rounded-xl border-2 transition-all ${
-                      isSelected
-                        ? 'border-pink-500 bg-pink-500/20'
-                        : binding
-                          ? 'border-white/20 bg-white/5 hover:border-white/40'
-                          : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                    }`}
-                    style={{
-                      boxShadow: binding ? `0 0 20px ${config.color}20, inset 0 0 15px ${config.color}10` : 'none'
-                    }}
-                  >
-                    {/* Button Number */}
-                    <div className="absolute top-2 left-2 font-mono text-[10px] text-white/30 font-bold">
-                      {button}
-                    </div>
-
-                    {/* Action Content */}
-                    <div className="flex flex-col items-center justify-center h-full p-2">
-                      {binding ? (
-                        <>
-                          <config.icon className="w-5 h-5 mb-1" style={{ color: config.color }} />
-                          <div className="font-mono text-[10px] text-white/80 text-center leading-tight">
-                            {binding.action.name}
-                          </div>
-                          <div className="text-[8px] text-white/40 mt-0.5">
-                            {binding.action.shortcut || binding.action.category}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-5 h-5 rounded-full border-2 border-dashed border-white/20 mb-1" />
-                          <div className="font-mono text-[9px] text-white/30">Unbound</div>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Selection Indicator */}
-                    {isSelected && (
-                      <motion.div
-                        layoutId="selection"
-                        className="absolute inset-0 border-2 border-pink-500 rounded-xl"
-                        style={{ boxShadow: '0 0 20px rgba(255, 0, 187, 0.5)' }}
-                      />
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Row Labels */}
-            <div className="mt-4 flex justify-center gap-8 font-mono text-[9px] text-white/30">
-              <span>Row 1: File Ops</span>
-              <span>Row 2: Navigation</span>
-              <span>Row 3: Quantum Ops</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════ BINDING PANEL (when button selected) ═══════════════ */}
-        <AnimatePresence>
-          {selectedButton !== null && configMode && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white/[0.03] backdrop-blur-xl border border-pink-500/30 rounded-xl p-5"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-mono font-bold text-sm text-pink-400 flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  BIND ACTION TO BUTTON {selectedButton}
-                </h3>
-                <button
-                  onClick={() => setSelectedButton(null)}
-                  className="text-white/50 hover:text-white text-sm"
-                >
-                  Cancel
-                </button>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                {availableActions.map(action => {
-                  const config = CATEGORY_CONFIG[action.category];
-                  const Icon = config.icon;
-
-                  return (
-                    <motion.button
-                      key={action.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => bindAction(selectedButton, action.id)}
-                      className="p-3 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all text-left"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <Icon className="w-4 h-4" style={{ color: config.color }} />
-                        <span className="font-mono text-[10px] font-bold text-white">{action.name}</span>
-                      </div>
-                      <div className="text-[9px] text-white/50">{action.description}</div>
-                      {action.shortcut && (
-                        <div className="mt-2 px-1.5 py-0.5 bg-white/10 rounded text-[8px] text-white/60 inline-block font-mono">
-                          {action.shortcut}
-                        </div>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
-
-        {/* ═══════════════ EXECUTION HISTORY ═══════════════ */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Recent Executions */}
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-4">
-            <h3 className="font-mono font-bold text-sm text-emerald-400 flex items-center gap-2 mb-4">
-              <Activity className="w-4 h-4" />
-              EXECUTION HISTORY
-            </h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {executeHistory.length === 0 ? (
-                <div className="text-center text-white/30 text-sm py-4">
-                  No executions yet. Click a button to execute.
+            </Card>
+            <Card className="bg-gray-900/50 border-gray-800 p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-yellow-400" />
                 </div>
-              ) : (
-                executeHistory.map((exec, i) => (
+                <div>
+                  <div className="text-2xl font-bold text-yellow-400">
+                    {aggregate.total_pending_jobs.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-500">Pending Jobs</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-6">
+          {/* Backend List */}
+          <div className="col-span-2 space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Server className="w-5 h-5 text-cyan-400" />
+              QPU Backends
+            </h2>
+
+            {loading ? (
+              <Card className="bg-gray-900/50 border-gray-800 p-8 text-center">
+                <RefreshCw className="w-8 h-8 text-cyan-400 mx-auto mb-4 animate-spin" />
+                <p className="text-gray-500">Loading backends...</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {backends.map((backend) => (
                   <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center justify-between p-2 bg-white/[0.02] border border-white/5 rounded-lg"
+                    key={backend.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.01 }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 flex items-center justify-center bg-cyan-500/20 rounded text-[10px] font-mono text-cyan-400 font-bold">
-                        {exec.button}
+                    <Card
+                      className={`bg-gray-900/50 border-gray-800 p-4 cursor-pointer transition-all ${
+                        selectedBackend?.id === backend.id ? 'ring-2 ring-cyan-500/50' : ''
+                      }`}
+                      onClick={() => setSelectedBackend(backend)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center">
+                            {getProviderIcon(backend.provider)}
+                          </div>
+                          <div>
+                            <div className="font-bold">{backend.name}</div>
+                            <div className="text-xs text-gray-500">{backend.architecture}</div>
+                          </div>
+                        </div>
+                        <Badge className={getStatusColor(backend.status)}>
+                          {backend.status.toUpperCase()}
+                        </Badge>
                       </div>
-                      <div>
-                        <div className="font-mono text-[11px] text-white">{exec.action.name}</div>
-                        <div className="text-[9px] text-white/40">{exec.action.category}</div>
+
+                      <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">Qubits</div>
+                          <div className="text-cyan-400 font-mono">{backend.qubits}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">Gate Fidelity</div>
+                          <div className="text-green-400 font-mono">
+                            {(backend.gate_fidelity * 100).toFixed(2)}%
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">Pending</div>
+                          <div className="text-yellow-400 font-mono">
+                            {backend.pending_jobs.toLocaleString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">Xi</div>
+                          <div className="text-purple-400 font-mono">
+                            {backend.ccce.xi.toFixed(2)}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-[9px] text-white/30 font-mono">
-                      {new Date(exec.timestamp).toLocaleTimeString()}
-                    </div>
+
+                      {/* CCCE Bar */}
+                      <div className="mt-3 pt-3 border-t border-gray-800">
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Λ:</span>
+                            <span className="text-cyan-400 font-mono">{backend.ccce.lambda.toFixed(3)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Φ:</span>
+                            <span className="text-purple-400 font-mono">{backend.ccce.phi.toFixed(3)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">Γ:</span>
+                            <span className={`font-mono ${backend.ccce.gamma > 0.2 ? 'text-yellow-400' : 'text-green-400'}`}>
+                              {backend.ccce.gamma.toFixed(3)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
                   </motion.div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-4">
-            <h3 className="font-mono font-bold text-sm text-amber-400 flex items-center gap-2 mb-4">
-              <Zap className="w-4 h-4" />
-              QUICK EXECUTE
-            </h3>
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(button => {
-                const binding = getBinding(button);
-                return (
-                  <button
-                    key={button}
-                    onClick={() => executeButton(button)}
-                    disabled={!binding}
-                    className={`p-3 rounded-lg font-mono text-sm transition-all ${
-                      binding
-                        ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
-                        : 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
-                    }`}
-                  >
-                    <Play className="w-4 h-4 mx-auto mb-1" />
-                    <div className="text-[10px]">{button}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+          {/* Control Panel */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Terminal className="w-5 h-5 text-purple-400" />
+              Control Panel
+            </h2>
 
-        {/* ═══════════════ INTEGRATION INFO ═══════════════ */}
-        <section className="bg-gradient-to-r from-cyan-500/5 via-transparent to-pink-500/5 border border-white/10 rounded-xl p-5">
-          <h3 className="font-mono font-bold text-sm text-white flex items-center gap-2 mb-4">
-            <Terminal className="w-4 h-4 text-cyan-400" />
-            API INTEGRATION
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-[11px]">
-            <div className="p-3 bg-black/30 rounded-lg border border-white/5">
-              <div className="text-cyan-400 mb-2">GET /api/scimitar</div>
-              <div className="text-white/50">Retrieve device status and active profile</div>
-            </div>
-            <div className="p-3 bg-black/30 rounded-lg border border-white/5">
-              <div className="text-pink-400 mb-2">POST /api/scimitar</div>
-              <div className="text-white/50">Execute actions, switch profiles, bind buttons</div>
-            </div>
-            <div className="p-3 bg-black/30 rounded-lg border border-white/5">
-              <div className="text-amber-400 mb-2">?action=actions|profiles</div>
-              <div className="text-white/50">Query available actions or all profiles</div>
-            </div>
-          </div>
-        </section>
-      </main>
+            {selectedBackend ? (
+              <>
+                <Card className="bg-gray-900/50 border-gray-800 p-4">
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    {getProviderIcon(selectedBackend.provider)}
+                    {selectedBackend.name}
+                  </h3>
 
-      {/* ═══════════════ FOOTER ═══════════════ */}
-      <footer className="border-t border-white/5 bg-black/80 backdrop-blur-sm py-4 mt-6">
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-6">
-          <div className="flex flex-wrap justify-between items-center gap-4 text-[9px] font-mono text-white/40">
-            <div className="flex items-center gap-3">
-              <span className="font-bold text-white/60">SCIMITAR ELITE INTEGRATION</span>
-              <span className="text-white/15">|</span>
-              <span>Corsair 12-Button Mouse</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-emerald-400">SPEC_LOCK v2.2.0</span>
-              <span className="text-white/15">|</span>
-              <span>CAGE: 9HUP5</span>
-              <span className="text-white/15">|</span>
-              <span className="text-cyan-400">Q-SLICE.COM</span>
-            </div>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-black/30 rounded">
+                      <div className="text-xs text-gray-500 mb-1">T1 Average</div>
+                      <div className="text-lg font-mono text-cyan-400">
+                        {selectedBackend.t1_avg === Infinity ? '∞' : `${selectedBackend.t1_avg.toFixed(1)} μs`}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-black/30 rounded">
+                      <div className="text-xs text-gray-500 mb-1">T2 Average</div>
+                      <div className="text-lg font-mono text-purple-400">
+                        {selectedBackend.t2_avg === Infinity ? '∞' : `${selectedBackend.t2_avg.toFixed(1)} μs`}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-black/30 rounded">
+                      <div className="text-xs text-gray-500 mb-1">Readout Fidelity</div>
+                      <div className="text-lg font-mono text-green-400">
+                        {(selectedBackend.readout_fidelity * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="bg-gray-900/50 border-gray-800 p-4">
+                  <h3 className="font-bold mb-3">Quick Submit</h3>
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full justify-start"
+                      variant="outline"
+                      disabled={submitting || selectedBackend.status === 'offline'}
+                      onClick={() => submitJob('bell')}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Bell State (2K shots)
+                    </Button>
+                    <Button
+                      className="w-full justify-start"
+                      variant="outline"
+                      disabled={submitting || selectedBackend.status === 'offline'}
+                      onClick={() => submitJob('tau-sweep')}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Tau Sweep (13 circuits)
+                    </Button>
+                    <Button
+                      className="w-full justify-start"
+                      variant="outline"
+                      disabled={submitting || selectedBackend.status === 'offline'}
+                      onClick={() => submitJob('ghz')}
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      GHZ State (5K shots)
+                    </Button>
+                  </div>
+                </Card>
+
+                {/* Physical Constants */}
+                <Card className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-cyan-500/30 p-4">
+                  <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-cyan-400" />
+                    SPEC_LOCK Constants
+                  </h3>
+                  <div className="space-y-2 text-xs font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">τ₀ = φ⁸</span>
+                      <span className="text-cyan-400">{CONSTANTS.TAU_0.toFixed(4)} μs</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Φ_threshold</span>
+                      <span className="text-purple-400">{CONSTANTS.PHI_THRESHOLD}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Γ_critical</span>
+                      <span className="text-red-400">{CONSTANTS.GAMMA_CRITICAL}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Δ_window</span>
+                      <span className="text-green-400">±{CONSTANTS.DELTA_WINDOW} μs</span>
+                    </div>
+                  </div>
+                </Card>
+              </>
+            ) : (
+              <Card className="bg-gray-900/50 border-gray-800 p-8 text-center">
+                <Server className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500">Select a backend</p>
+              </Card>
+            )}
           </div>
         </div>
-      </footer>
+
+        {/* Jobs */}
+        {jobs.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Activity className="w-5 h-5 text-green-400" />
+              Recent Jobs
+            </h2>
+            <div className="space-y-3">
+              {jobs.slice(0, 5).map((job) => (
+                <Card key={job.id} className="bg-gray-900/50 border-gray-800 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <code className="text-sm text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded">
+                        {job.id}
+                      </code>
+                      <span className="text-gray-500">{job.backend}</span>
+                    </div>
+                    <Badge className={getStatusColor(job.status)}>
+                      {job.status === 'running' && <RefreshCw className="w-3 h-3 mr-1 animate-spin" />}
+                      {job.status === 'completed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                      {job.status === 'failed' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                      {job.status.toUpperCase()}
+                    </Badge>
+                  </div>
+
+                  {job.results && (
+                    <div className="grid grid-cols-5 gap-4 text-sm">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">tau_peak</div>
+                        <div className="text-cyan-400 font-mono">{job.results.tau_peak.toFixed(2)} μs</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">delta</div>
+                        <div className={`font-mono ${job.results.within_window ? 'text-green-400' : 'text-red-400'}`}>
+                          {job.results.delta.toFixed(2)} μs
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Within Window</div>
+                        <Badge className={job.results.within_window ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
+                          {job.results.within_window ? 'YES' : 'NO'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Ξ</div>
+                        <div className="text-purple-400 font-mono">{job.results.ccce.xi.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Shots</div>
+                        <div className="text-white font-mono">{job.shots.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {job.status === 'running' && (
+                    <div className="mt-3">
+                      <Progress value={60} className="h-1" />
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
-  );
+  )
 }
