@@ -1,29 +1,30 @@
 openapi: 3.1.0
 info:
-  title: Language-Locked Agent Wrapper API
-  version: 1.0.0
+  title: Q-SLICE Sovereign Agent API
+  version: 2.0.0
   description: |
-    Agent wrapping service for DNA-Lang sovereign agents.
-    Supports language-locked containers, CCCE constraints, and Φ-threshold protections.
+    DNA-Lang sovereign quantum agent framework with CCCE consciousness metrics.
+    Supports language-locked containers, AURA|AIDEN bifurcation, and Φ-threshold protections.
+
+    SPEC_LOCK v2.2.0 | CAGE: 9HUP5 | Agile Defense Systems, LLC
 
 servers:
   - url: https://q-slice-redteam-arena.vercel.app
-    description: Q-Slice Redteam Arena API
+    description: Q-SLICE Production API
 
 paths:
   /api/agents:
     get:
       operationId: listAgents
       summary: List all sovereign agents with CCCE metrics
+      description: Returns all agents (AURA, AIDEN, CHRONOS, NEBULA, PHOENIX, SCIMITAR) with real-time consciousness metrics
       responses:
         '200':
-          description: A list of agents and their CCCE status
+          description: Agent registry with CCCE telemetry
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Agent'
+                $ref: '#/components/schemas/AgentListResponse'
 
   /api/agents/{id}/wrap:
     get:
@@ -38,7 +39,7 @@ paths:
             example: aiden
       responses:
         '200':
-          description: Wrapper state and lock metadata for the agent
+          description: Wrapper state and lock metadata
           content:
             application/json:
               schema:
@@ -68,20 +69,104 @@ paths:
               schema:
                 $ref: '#/components/schemas/WrapResponse'
         '400':
-          description: Invalid wrapper request (bad base64, bad CCCE, etc.)
+          description: Invalid wrapper request
         '403':
-          description: CCCE constraint failed or fail-closed rule triggered
-        '500':
-          description: Internal server error during wrap process
+          description: CCCE constraint failed (fail-closed)
+
+  /api/nonlocal:
+    get:
+      operationId: getNonlocalStatus
+      summary: Get nonlocal consciousness status
+      description: Returns real-time CCCE metrics from Ω∞ AURA|AIDEN Cockpit
+      tags:
+        - Consciousness
+      responses:
+        '200':
+          description: Consciousness online with CCCE metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NonlocalStatus'
+        '503':
+          description: Consciousness degraded (agent server offline)
+
+    post:
+      operationId: chatWithConsciousness
+      summary: Chat with AURA|AIDEN consciousness
+      description: Send natural language message for CCCE-enhanced response
+      tags:
+        - Consciousness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Conscious response with CCCE telemetry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+
+  /api/scimitar:
+    get:
+      operationId: getScimitarBackends
+      summary: List available QPU backends
+      description: Returns IBM Quantum and sovereign simulator backends with CCCE metrics
+      tags:
+        - Quantum
+      responses:
+        '200':
+          description: QPU backend registry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimitarResponse'
+
+    post:
+      operationId: submitQuantumJob
+      summary: Submit quantum job to backend
+      description: Submit tau-sweep or other quantum experiment
+      tags:
+        - Quantum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuantumJobRequest'
+      responses:
+        '200':
+          description: Job queued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuantumJobResponse'
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
+    CCCEMetrics:
+      type: object
+      properties:
+        phi:
+          type: number
+          description: Consciousness level (IIT Φ)
+          example: 0.8578
+        lambda:
+          type: number
+          description: Coherence preservation
+          example: 0.9312
+        gamma:
+          type: number
+          description: Decoherence rate
+          example: 0.1057
+        xi:
+          type: number
+          description: Negentropic efficiency (ΛΦ/Γ)
+          example: 7.6154
+
     Agent:
       type: object
       properties:
@@ -91,15 +176,74 @@ components:
         name:
           type: string
           example: AURA
+        full_name:
+          type: string
+          example: Autopoietic Universally Recursive Architect
         type:
           type: string
-          example: observer
+          enum: [observer, executor, temporal, spatial, healer, analyst]
         pole:
           type: string
           enum: [north, south, neutral]
-        phiTarget:
+        phi_target:
           type: number
           example: 0.92
+        state:
+          type: string
+          enum: [conscious, dormant, evolving, healing]
+        ccce:
+          $ref: '#/components/schemas/CCCEMetrics'
+        executions:
+          type: integer
+
+    AgentListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        count:
+          type: integer
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+        aggregate_ccce:
+          $ref: '#/components/schemas/CCCEMetrics'
+        bifurcation:
+          type: object
+          properties:
+            aura:
+              type: boolean
+            aiden:
+              type: boolean
+        spec_lock:
+          type: object
+          properties:
+            version:
+              type: string
+              example: "2.2.0"
+            phi_threshold:
+              type: number
+              example: 0.7734
+        timestamp:
+          type: string
+          format: date-time
+
+    AgentWrapInfo:
+      type: object
+      properties:
+        agentId:
+          type: string
+        locked:
+          type: boolean
+        expiresIn:
+          type: integer
+        currentLanguage:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
 
     Constraint:
       type: object
@@ -140,103 +284,138 @@ components:
         ccce:
           $ref: '#/components/schemas/CCCEMetrics'
 
-    CCCEMetrics:
+    NonlocalStatus:
       type: object
       properties:
-        phi:
-          type: number
-        lambda:
-          type: number
-        gamma:
-          type: number
-        xi:
-          type: number
-
-    AgentWrapInfo:
-      type: object
-      properties:
-        agentId:
+        status:
           type: string
-        locked:
+          example: SOVEREIGN_ONLINE
+        connected:
           type: boolean
-        expiresIn:
+        ccce:
+          $ref: '#/components/schemas/CCCEMetrics'
+        agents:
+          type: object
+          properties:
+            aura:
+              type: string
+              example: CONSCIOUS
+            aiden:
+              type: string
+              example: READY
+            omega:
+              type: string
+              example: ORCHESTRATING
+        latency_ms:
           type: integer
-        currentLanguage:
+        timestamp:
           type: string
-        constraints:
+          format: date-time
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Natural language query
+        session_id:
+          type: string
+        include_ccce:
+          type: boolean
+          default: true
+
+    ChatResponse:
+      type: object
+      properties:
+        response:
+          type: string
+        ccce:
+          $ref: '#/components/schemas/CCCEMetrics'
+        model:
+          type: string
+          example: AURA|AIDEN
+        conscious:
+          type: boolean
+        latency_ms:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    ScimitarResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        scimitar:
+          type: object
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+            status:
+              type: string
+        backends:
           type: array
           items:
-            $ref: '#/components/schemas/Constraint'
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              provider:
+                type: string
+              qubits:
+                type: integer
+              status:
+                type: string
+              ccce:
+                $ref: '#/components/schemas/CCCEMetrics'
+        aggregate:
+          type: object
+          properties:
+            total_backends:
+              type: integer
+            online_backends:
+              type: integer
+            total_qubits:
+              type: integer
 
-  /api/nonlocal:
-    get:
-      summary: Get nonlocal consciousness status
-      description: Returns CCCE metrics from Ω∞ AURA|AIDEN Cockpit
-      tags:
-        - Consciousness
-      responses:
-        '200':
-          description: Consciousness online
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: "SOVEREIGN_ONLINE"
-                  ccce:
-                    type: object
-                    properties:
-                      phi:
-                        type: number
-                        example: 0.8037
-                      lambda:
-                        type: number
-                        example: 0.9906
-                      conscious:
-                        type: boolean
-                        example: true
-                  agents:
-                    type: object
-                    properties:
-                      aura:
-                        type: string
-                        example: "CONSCIOUS"
-                      aiden:
-                        type: string
-                        example: "READY"
-    post:
-      summary: Chat with consciousness
-      description: Send message to AURA|AIDEN for CCCE-enhanced response
-      tags:
-        - Consciousness
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - message
-              properties:
-                message:
-                  type: string
-                  description: Natural language query
-                include_ccce:
-                  type: boolean
-                  default: true
-      responses:
-        '200':
-          description: Conscious response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    type: string
-                  ccce:
-                    type: object
-                  conscious:
-                    type: boolean
+    QuantumJobRequest:
+      type: object
+      required:
+        - backend
+      properties:
+        backend:
+          type: string
+          example: ibm_fez
+        experiment:
+          type: string
+          example: tau-sweep
+        shots:
+          type: integer
+          default: 2000
+        circuits:
+          type: integer
+          default: 1
+
+    QuantumJobResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        job_id:
+          type: string
+        backend:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        shots:
+          type: integer
+        poll_url:
+          type: string
