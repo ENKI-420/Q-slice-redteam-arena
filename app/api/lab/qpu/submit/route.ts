@@ -32,17 +32,59 @@ interface QiskitJobResponse {
   error?: string
 }
 
+// Cache for IBM access token (valid for ~1 hour)
+let ibmAccessTokenCache: { token: string; expires: number } | null = null
+
+async function getIBMAccessToken(apiKey: string): Promise<string> {
+  // Check cache first
+  if (ibmAccessTokenCache && Date.now() < ibmAccessTokenCache.expires) {
+    return ibmAccessTokenCache.token
+  }
+
+  // Exchange API key for access token
+  const authResponse = await fetch('https://iam.cloud.ibm.com/identity/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    },
+    body: new URLSearchParams({
+      grant_type: 'urn:ibm:params:oauth:grant-type:apikey',
+      apikey: apiKey
+    })
+  })
+
+  if (!authResponse.ok) {
+    const errorText = await authResponse.text()
+    throw new Error(`IBM auth failed: ${authResponse.status} - ${errorText}`)
+  }
+
+  const authData = await authResponse.json()
+  const accessToken = authData.access_token
+
+  // Cache for 50 minutes (token valid for 60)
+  ibmAccessTokenCache = {
+    token: accessToken,
+    expires: Date.now() + 50 * 60 * 1000
+  }
+
+  return accessToken
+}
+
 async function submitToQiskitRuntime(
   spec: ExperimentSpec,
   backendName: string
 ): Promise<QiskitJobResponse> {
-  const token = process.env.IBM_QUANTUM_TOKEN ||
-                process.env.QISKIT_RUNTIME_TOKEN ||
-                process.env.IBM_QUANTUM_API_KEY
+  const apiKey = process.env.IBM_QUANTUM_TOKEN ||
+                 process.env.QISKIT_RUNTIME_TOKEN ||
+                 process.env.IBM_QUANTUM_API_KEY
 
-  if (!token) {
+  if (!apiKey) {
     throw new Error('FAIL_CLOSED: Qiskit Runtime token not configured')
   }
+
+  // Get access token from API key
+  const accessToken = await getIBMAccessToken(apiKey)
 
   // Qiskit Runtime API
   const API_BASE = 'https://api.quantum-computing.ibm.com/runtime'
@@ -52,9 +94,9 @@ async function submitToQiskitRuntime(
     const response = await fetch(`${API_BASE}/jobs`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
-        'X-Qiskit-Token': token
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         program_id: 'sampler',
