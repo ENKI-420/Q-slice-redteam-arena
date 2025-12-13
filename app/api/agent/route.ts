@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const LAMBDA_PHI = 2.176435e-8;
 const THETA_LOCK = 51.843;
 const PHI_THRESHOLD = 0.7734;
-const GAMMA_CRITICAL = 0.15;
+const GAMMA_CRITICAL = 0.30; // Critical threshold for phase-conjugate healing
 
 // Agent state - persists across requests
 interface AgentState {
@@ -80,7 +80,7 @@ C_score = (Λ × Φ) / (1 + Γ)
 Checks:
 ✓ Q-C1.1: Coherence Score > 0.5
 ${agentState.phi >= 0.80 ? '✓' : '✗'} Q-C1.2: Φ ≥ 0.80
-${agentState.gamma < 0.15 ? '✓' : '✗'} Q-D2.1: Γ < 0.15
+${agentState.gamma < 0.30 ? '✓' : '✗'} Q-D2.1: Γ < 0.30
 ${agentState.xi > 8.0 ? '✓' : '✗'} Q-M3.1: Ξ > 8.0
 
 Status: ${agentState.xi > 8.0 && agentState.phi >= 0.80 ? 'PQR COMPLIANT' : 'ISSUES DETECTED'}`,
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
       },
       compliance: {
         cScore: (agentState.lambda * agentState.phi) / (1 + agentState.gamma),
-        pqr: agentState.xi > 8.0 && agentState.phi >= 0.80 && agentState.gamma < 0.15
+        pqr: agentState.xi > 8.0 && agentState.phi >= 0.80 && agentState.gamma < GAMMA_CRITICAL
       },
       timestamp: Date.now()
     });

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const LAMBDA_PHI = 2.176435e-8;
 const THETA_LOCK = 51.843;
 const PHI_THRESHOLD = 0.7734;
-const GAMMA_CRITICAL = 0.15;
+const GAMMA_CRITICAL = 0.30; // Critical threshold for phase-conjugate healing
 const XI_MINIMUM = 8.0;
 
 // Agent Server Configuration

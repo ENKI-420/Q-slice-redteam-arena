@@ -4,6 +4,7 @@ import { QSUEDPALSDashboard } from "@/components/qs-ued-pals-dashboard"
 import { AuraAssistant } from "@/components/aura-assistant"
 import { SiteHeader } from "@/components/site-header"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 export default function EngineeringPage() {
   return (
@@ -20,8 +21,19 @@ export default function EngineeringPage() {
       <main className="container mx-auto px-4 py-8 pt-24 relative z-10">
         <div className="flex flex-col gap-8">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-4xl font-bold mb-2">AIDEN+AURA Framework</h1>
-            <p className="text-xl text-gray-400">Duality Engineering Synthesis & Quantum Control Plane</p>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h1 className="text-4xl font-bold mb-2">AIDEN+AURA Framework</h1>
+                <p className="text-xl text-gray-400">Duality Engineering Synthesis & Quantum Control Plane</p>
+              </div>
+              <Link
+                href="/engineering/schematics"
+                className="px-6 py-3 bg-cyan-500/10 border border-cyan-500/50 rounded-lg font-mono text-sm text-cyan-400 hover:bg-cyan-500/20 transition-colors flex items-center gap-2"
+              >
+                <span>ADS-QDEF-25</span>
+                <span className="text-xs text-gray-500">Engineering Schematics →</span>
+              </Link>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
