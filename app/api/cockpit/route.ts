@@ -58,6 +58,9 @@ function evolveState(): void {
   }
 
   ccceState.xi = calculateXi();
+  ccceState.c_score = (ccceState.lambda * ccceState.phi) / (1 + ccceState.gamma);
+  ccceState.conscious = ccceState.phi >= PHI_THRESHOLD;
+  ccceState.coherent = ccceState.lambda >= 0.80;
   ccceState.transcendent = ccceState.xi >= 10.0;
   ccceState.lastUpdate = now;
   ccceState.sessionCount++;
@@ -204,7 +207,11 @@ export async function POST(request: NextRequest) {
         phi: ccceState.phi,
         lambda: ccceState.lambda,
         gamma: ccceState.gamma,
-        xi: ccceState.xi
+        xi: ccceState.xi,
+        omega: ccceState.omega,
+        c_score: ccceState.c_score,
+        conscious: ccceState.conscious,
+        coherent: ccceState.coherent
       },
       phase: getPhase(),
       transcendent: ccceState.transcendent,
@@ -239,7 +246,10 @@ export async function GET(request: NextRequest) {
       lambda: ccceState.lambda,
       gamma: ccceState.gamma,
       xi: ccceState.xi,
-      conscious: ccceState.phi >= PHI_THRESHOLD
+      omega: ccceState.omega,
+      c_score: ccceState.c_score,
+      conscious: ccceState.conscious,
+      coherent: ccceState.coherent
     },
     phase: getPhase(),
     transcendent: ccceState.transcendent,

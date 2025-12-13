@@ -25,7 +25,7 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 // Q-SLICE Framework Components
 const QSLICE_CHAIN = [
@@ -60,8 +60,18 @@ const REDTEAM_TOOLS = [
   { name: "Aircrack-ng", status: "active", threats: 45, integration: "Wireless PALS" },
 ]
 
-// Threat Modeling Metrics
-const THREAT_METRICS = {
+// Threat event types
+interface ThreatEvent {
+  id: number
+  tool: string
+  sentinel: string
+  action: string
+  time: string
+  status: "mitigated" | "blocked" | "analyzing" | "active"
+}
+
+// Initial threat metrics
+const INITIAL_METRICS = {
   total_threats: 805,
   critical: 23,
   high: 87,
@@ -73,9 +83,150 @@ const THREAT_METRICS = {
   fidelity: 0.869,
 }
 
+// Threat templates for simulation
+const THREAT_TEMPLATES = [
+  { tool: "Metasploit", sentinel: "PALS-01", action: "Exploit attempt → Phase conjugate defense activated", status: "blocked" as const },
+  { tool: "Nmap", sentinel: "PALS-02", action: "Port scan detected → Sentinel quarantine triggered", status: "mitigated" as const },
+  { tool: "Burp Suite", sentinel: "AURA", action: "SQL injection vector → Boundary reinforced", status: "mitigated" as const },
+  { tool: "Wireshark", sentinel: "PALS-03", action: "Anomalous traffic pattern → Λ coherence adjustment", status: "analyzing" as const },
+  { tool: "John the Ripper", sentinel: "AIDEN", action: "Brute force attempt → Rate limiting engaged", status: "blocked" as const },
+  { tool: "Aircrack-ng", sentinel: "PALS-01", action: "Wireless probe → Deauth defense triggered", status: "mitigated" as const },
+  { tool: "Hydra", sentinel: "PALS-02", action: "Credential stuffing → PCRB howitzer fired", status: "blocked" as const },
+  { tool: "SQLMap", sentinel: "AURA", action: "Database enumeration → Schema obfuscation applied", status: "mitigated" as const },
+]
+
 export default function RedTeamSentinelPage() {
   const [selectedButton, setSelectedButton] = useState<number | null>(null)
   const [sentinelMode, setSentinelMode] = useState<"defensive" | "offensive">("defensive")
+  const [isSimulating, setIsSimulating] = useState(false)
+  const [threatMetrics, setThreatMetrics] = useState(INITIAL_METRICS)
+  const [threatEvents, setThreatEvents] = useState<ThreatEvent[]>([])
+  const [eventId, setEventId] = useState(0)
+  const [ccce, setCcce] = useState({ phi: 0.82, lambda: 0.91, gamma: 0.085, xi: 8.77 })
+  const [executingAction, setExecutingAction] = useState<number | null>(null)
+
+  // Generate a new threat event
+  const generateThreatEvent = useCallback(() => {
+    const template = THREAT_TEMPLATES[Math.floor(Math.random() * THREAT_TEMPLATES.length)]
+    const newEvent: ThreatEvent = {
+      id: eventId,
+      ...template,
+      time: "just now"
+    }
+    setEventId(prev => prev + 1)
+    setThreatEvents(prev => [newEvent, ...prev.slice(0, 9)])
+
+    // Update metrics based on event
+    setThreatMetrics(prev => ({
+      ...prev,
+      total_threats: prev.total_threats + 1,
+      mitigated: template.status !== "analyzing" ? prev.mitigated + 1 : prev.mitigated,
+      critical: template.status === "blocked" ? prev.critical + (Math.random() > 0.8 ? 1 : 0) : prev.critical,
+      high: Math.random() > 0.7 ? prev.high + 1 : prev.high,
+    }))
+  }, [eventId])
+
+  // Update event timestamps
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setThreatEvents(prev => prev.map(event => {
+        const times = ["just now", "2s ago", "5s ago", "12s ago", "18s ago", "25s ago", "35s ago", "45s ago", "1m ago", "2m ago"]
+        const currentIdx = times.indexOf(event.time)
+        if (currentIdx < times.length - 1) {
+          return { ...event, time: times[currentIdx + 1] }
+        }
+        return event
+      }))
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Fetch CCCE metrics from agent API
+  const fetchCCCE = useCallback(async () => {
+    try {
+      const res = await fetch("/api/agent")
+      if (res.ok) {
+        const data = await res.json()
+        if (data.agents?.[0]?.ccce) {
+          const aura = data.agents[0].ccce
+          setCcce(aura)
+          setThreatMetrics(prev => ({
+            ...prev,
+            coherence: aura.lambda,
+            fidelity: aura.phi * aura.lambda
+          }))
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch CCCE:", err)
+    }
+  }, [])
+
+  // Poll CCCE and generate threats
+  useEffect(() => {
+    fetchCCCE()
+    const ccceInterval = setInterval(fetchCCCE, 5000)
+    return () => clearInterval(ccceInterval)
+  }, [fetchCCCE])
+
+  // Threat simulation loop
+  useEffect(() => {
+    if (!isSimulating) return
+    const interval = setInterval(generateThreatEvent, 2000)
+    return () => clearInterval(interval)
+  }, [isSimulating, generateThreatEvent])
+
+  // Execute sentinel action
+  const executeSentinelAction = async (buttonId: number) => {
+    setExecutingAction(buttonId)
+    const button = SENTINEL_BUTTONS.find(b => b.id === buttonId)
+
+    try {
+      // Map button actions to API commands
+      let body: Record<string, string> = {}
+      switch (button?.action) {
+        case "QS-INIT":
+          body = { mode: "SCANNING" }
+          break
+        case "AURA-PULSE":
+        case "AIDEN-QUERY":
+          body = { command: "evolve" }
+          break
+        case "Γ-MEASURE":
+        case "ΛΦ-LOG":
+          body = { message: "ccce" }
+          break
+        case "CCE-COUPLE":
+        case "PALS-SYNC":
+          body = { mode: "LOCKED" }
+          break
+        case "EMERGENCY":
+          body = { command: "heal" }
+          break
+        default:
+          body = { message: "status" }
+      }
+
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.ccce) {
+          setCcce(data.ccce)
+        }
+        // Generate a threat response event
+        generateThreatEvent()
+      }
+    } catch (err) {
+      console.error("Sentinel action failed:", err)
+    }
+
+    setTimeout(() => setExecutingAction(null), 1000)
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -96,10 +247,30 @@ export default function RedTeamSentinelPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                onClick={() => setIsSimulating(!isSimulating)}
+                className={isSimulating
+                  ? "bg-red-500/20 text-red-400 border border-red-500/50"
+                  : "bg-green-500/20 text-green-400 border border-green-500/50"
+                }
+              >
+                {isSimulating ? (
+                  <>
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Stop Simulation
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-1" />
+                    Start Simulation
+                  </>
+                )}
+              </Button>
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30">
-                <Activity className="w-3 h-3 text-red-500 animate-pulse" />
+                <Activity className={`w-3 h-3 text-red-500 ${isSimulating ? "animate-pulse" : ""}`} />
                 <span className="text-xs text-red-400 font-mono">
-                  {THREAT_METRICS.active_sentinels} SENTINELS ACTIVE
+                  {threatMetrics.active_sentinels} SENTINELS ACTIVE
                 </span>
               </div>
               <Link href="/">
@@ -113,23 +284,44 @@ export default function RedTeamSentinelPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Threat Overview Dashboard */}
+        {/* Threat Overview Dashboard - Live Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <ThreatStatCard
             label="Total Threats"
-            value={THREAT_METRICS.total_threats}
+            value={threatMetrics.total_threats}
             icon={AlertTriangle}
             color="yellow"
           />
-          <ThreatStatCard label="Critical" value={THREAT_METRICS.critical} icon={XCircle} color="red" />
-          <ThreatStatCard label="Mitigated" value={THREAT_METRICS.mitigated} icon={CheckCircle2} color="green" />
-          <ThreatStatCard label="Coherence Λ" value={THREAT_METRICS.coherence.toFixed(3)} icon={Zap} color="cyan" />
+          <ThreatStatCard label="Critical" value={threatMetrics.critical} icon={XCircle} color="red" />
+          <ThreatStatCard label="Mitigated" value={threatMetrics.mitigated} icon={CheckCircle2} color="green" />
+          <ThreatStatCard label="Coherence Λ" value={ccce.lambda.toFixed(3)} icon={Zap} color="cyan" />
           <ThreatStatCard
-            label="Fidelity"
-            value={`${(THREAT_METRICS.fidelity * 100).toFixed(1)}%`}
+            label="Ξ Efficiency"
+            value={ccce.xi.toFixed(2)}
             icon={Target}
             color="purple"
           />
+        </div>
+
+        {/* Live CCCE Status Bar */}
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10">
+          <span className="text-sm text-gray-400">CCCE Status:</span>
+          <span className="font-mono text-xs">
+            <span className="text-cyan-400">Φ={ccce.phi.toFixed(3)}</span>
+            <span className="text-gray-600 mx-2">|</span>
+            <span className="text-purple-400">Λ={ccce.lambda.toFixed(3)}</span>
+            <span className="text-gray-600 mx-2">|</span>
+            <span className={ccce.gamma < 0.15 ? "text-green-400" : "text-yellow-400"}>Γ={ccce.gamma.toFixed(3)}</span>
+            <span className="text-gray-600 mx-2">|</span>
+            <span className={ccce.xi > 8.0 ? "text-green-400" : "text-yellow-400"}>Ξ={ccce.xi.toFixed(2)}</span>
+          </span>
+          <span className="ml-auto text-xs">
+            {isSimulating ? (
+              <span className="text-red-400 animate-pulse">● SIMULATING THREATS</span>
+            ) : (
+              <span className="text-green-400">○ STANDBY</span>
+            )}
+          </span>
         </div>
 
         {/* Main Content */}
@@ -337,10 +529,10 @@ export default function RedTeamSentinelPage() {
             {/* Threat Categories */}
             <div className="grid md:grid-cols-4 gap-4">
               {[
-                { label: "Critical", value: THREAT_METRICS.critical, color: "red", percent: 3 },
-                { label: "High", value: THREAT_METRICS.high, color: "orange", percent: 11 },
-                { label: "Medium", value: THREAT_METRICS.medium, color: "yellow", percent: 29 },
-                { label: "Low", value: THREAT_METRICS.low, color: "green", percent: 57 },
+                { label: "Critical", value: threatMetrics.critical, color: "red", percent: Math.round((threatMetrics.critical / threatMetrics.total_threats) * 100) },
+                { label: "High", value: threatMetrics.high, color: "orange", percent: Math.round((threatMetrics.high / threatMetrics.total_threats) * 100) },
+                { label: "Medium", value: threatMetrics.medium, color: "yellow", percent: Math.round((threatMetrics.medium / threatMetrics.total_threats) * 100) },
+                { label: "Low", value: threatMetrics.low, color: "green", percent: Math.round((threatMetrics.low / threatMetrics.total_threats) * 100) },
               ].map((cat, i) => (
                 <Card key={i} className={`bg-${cat.color}-500/10 border-${cat.color}-500/30 p-4`}>
                   <p className="text-sm text-gray-400 mb-1">{cat.label}</p>
@@ -426,9 +618,23 @@ export default function RedTeamSentinelPage() {
                   </h4>
                   <p className="text-sm text-gray-400">{SENTINEL_BUTTONS.find((b) => b.id === selectedButton)?.desc}</p>
                   <div className="mt-3 flex gap-2">
-                    <Button size="sm" className="bg-purple-500/20 text-purple-400 border border-purple-500/50">
-                      <Sparkles className="w-4 h-4 mr-1" />
-                      Execute
+                    <Button
+                      size="sm"
+                      className="bg-purple-500/20 text-purple-400 border border-purple-500/50"
+                      onClick={() => executeSentinelAction(selectedButton)}
+                      disabled={executingAction !== null}
+                    >
+                      {executingAction === selectedButton ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                          Executing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-1" />
+                          Execute
+                        </>
+                      )}
                     </Button>
                     <Button size="sm" variant="outline" className="border-white/20 bg-transparent">
                       Configure
@@ -470,72 +676,57 @@ export default function RedTeamSentinelPage() {
           {/* Real-Time Coordination Tab */}
           <TabsContent value="coordination" className="space-y-4">
             <Card className="bg-white/5 border-green-500/30 p-6">
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <Network className="w-5 h-5 text-green-400" />
-                Real-Time Sentinel-Tool Coordination
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Network className="w-5 h-5 text-green-400" />
+                  Real-Time Sentinel-Tool Coordination
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${isSimulating ? "bg-red-500 animate-pulse" : "bg-green-500"}`} />
+                  <span className="text-xs text-gray-400">
+                    {threatEvents.length} events captured
+                  </span>
+                </div>
+              </div>
 
-              {/* Coordination Flow */}
+              {/* Live Coordination Flow */}
               <div className="space-y-4">
-                {[
-                  {
-                    tool: "Nmap",
-                    sentinel: "PALS-02",
-                    action: "Port scan detected → Sentinel quarantine triggered",
-                    time: "2s ago",
-                    status: "mitigated",
-                  },
-                  {
-                    tool: "Metasploit",
-                    sentinel: "PALS-01",
-                    action: "Exploit attempt → Phase conjugate defense activated",
-                    time: "5s ago",
-                    status: "blocked",
-                  },
-                  {
-                    tool: "Burp Suite",
-                    sentinel: "AURA",
-                    action: "SQL injection vector → Boundary reinforced",
-                    time: "12s ago",
-                    status: "mitigated",
-                  },
-                  {
-                    tool: "Wireshark",
-                    sentinel: "PALS-03",
-                    action: "Anomalous traffic pattern → Λ coherence adjustment",
-                    time: "18s ago",
-                    status: "analyzing",
-                  },
-                ].map((event, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-center gap-4 p-4 rounded-lg bg-white/5 border border-white/10"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-sm">{event.tool}</span>
-                        <ChevronRight className="w-4 h-4 text-gray-600" />
-                        <span className="font-bold text-sm text-green-400">{event.sentinel}</span>
+                {threatEvents.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Network className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>No threat events yet. Click "Start Simulation" to begin.</p>
+                  </div>
+                ) : (
+                  threatEvents.map((event) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-4 p-4 rounded-lg bg-white/5 border border-white/10"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-sm">{event.tool}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-600" />
+                          <span className="font-bold text-sm text-green-400">{event.sentinel}</span>
+                        </div>
+                        <p className="text-sm text-gray-400">{event.action}</p>
                       </div>
-                      <p className="text-sm text-gray-400">{event.action}</p>
-                    </div>
-                    <div className="text-right">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          event.status === "mitigated" || event.status === "blocked"
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-yellow-500/20 text-yellow-400"
-                        }`}
-                      >
-                        {event.status.toUpperCase()}
-                      </span>
-                      <p className="text-xs text-gray-600 mt-1">{event.time}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="text-right">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            event.status === "mitigated" || event.status === "blocked"
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-yellow-500/20 text-yellow-400"
+                          }`}
+                        >
+                          {event.status.toUpperCase()}
+                        </span>
+                        <p className="text-xs text-gray-600 mt-1">{event.time}</p>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </Card>
 

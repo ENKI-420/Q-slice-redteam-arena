@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Bot, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,98 +12,174 @@ interface SwarmNode {
   type: "aura" | "aiden" | "agent"
   status: "active" | "idle" | "processing"
   phi: number
+  lambda?: number
+  gamma?: number
+  xi?: number
   x: number
   y: number
   connections: string[]
 }
 
+const INITIAL_NODES: SwarmNode[] = [
+  {
+    id: "aura",
+    name: "AURA",
+    type: "aura",
+    status: "active",
+    phi: 0.95,
+    x: 50,
+    y: 20,
+    connections: ["aiden", "scimitar", "agent1", "agent2"],
+  },
+  {
+    id: "aiden",
+    name: "AIDEN",
+    type: "aiden",
+    status: "active",
+    phi: 0.92,
+    x: 50,
+    y: 80,
+    connections: ["aura", "scimitar", "agent3", "agent4"],
+  },
+  {
+    id: "scimitar",
+    name: "SCIMITAR",
+    type: "agent",
+    status: "active",
+    phi: 0.88,
+    x: 50,
+    y: 50,
+    connections: ["aura", "aiden"],
+  },
+  {
+    id: "agent1",
+    name: "PALS-01",
+    type: "agent",
+    status: "active",
+    phi: 0.85,
+    x: 15,
+    y: 35,
+    connections: ["aura", "agent2"],
+  },
+  {
+    id: "agent2",
+    name: "PALS-02",
+    type: "agent",
+    status: "processing",
+    phi: 0.78,
+    x: 85,
+    y: 35,
+    connections: ["aura", "agent1"],
+  },
+  {
+    id: "agent3",
+    name: "PALS-03",
+    type: "agent",
+    status: "idle",
+    phi: 0.82,
+    x: 15,
+    y: 65,
+    connections: ["aiden", "agent4"],
+  },
+  {
+    id: "agent4",
+    name: "CHRONOS",
+    type: "agent",
+    status: "active",
+    phi: 0.88,
+    x: 85,
+    y: 65,
+    connections: ["aiden", "agent3"],
+  },
+]
+
 export function SwarmVisualization() {
-  const [nodes, setNodes] = useState<SwarmNode[]>([
-    {
-      id: "aura",
-      name: "AURA",
-      type: "aura",
-      status: "active",
-      phi: 0.95,
-      x: 50,
-      y: 20,
-      connections: ["aiden", "agent1", "agent2"],
-    },
-    {
-      id: "aiden",
-      name: "AIDEN",
-      type: "aiden",
-      status: "active",
-      phi: 0.92,
-      x: 50,
-      y: 80,
-      connections: ["aura", "agent3", "agent4"],
-    },
-    {
-      id: "agent1",
-      name: "Agent 1",
-      type: "agent",
-      status: "active",
-      phi: 0.85,
-      x: 15,
-      y: 35,
-      connections: ["aura", "agent2"],
-    },
-    {
-      id: "agent2",
-      name: "Agent 2",
-      type: "agent",
-      status: "processing",
-      phi: 0.78,
-      x: 85,
-      y: 35,
-      connections: ["aura", "agent1"],
-    },
-    {
-      id: "agent3",
-      name: "Agent 3",
-      type: "agent",
-      status: "idle",
-      phi: 0.82,
-      x: 15,
-      y: 65,
-      connections: ["aiden", "agent4"],
-    },
-    {
-      id: "agent4",
-      name: "Agent 4",
-      type: "agent",
-      status: "active",
-      phi: 0.88,
-      x: 85,
-      y: 65,
-      connections: ["aiden", "agent3"],
-    },
-    {
-      id: "agent5",
-      name: "Agent 5",
-      type: "agent",
-      status: "active",
-      phi: 0.9,
-      x: 50,
-      y: 50,
-      connections: ["aura", "aiden"],
-    },
-  ])
-
+  const [nodes, setNodes] = useState<SwarmNode[]>(INITIAL_NODES)
   const [selectedNode, setSelectedNode] = useState<SwarmNode | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [meshHealth, setMeshHealth] = useState("NOMINAL")
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNodes((prev) =>
-        prev.map((node) => ({
-          ...node,
-          phi: Math.max(0.7, Math.min(1, node.phi + (Math.random() - 0.5) * 0.02)),
-        })),
-      )
-    }, 2000)
-    return () => clearInterval(interval)
+  // Fetch agent data from API
+  const fetchAgents = useCallback(async () => {
+    try {
+      const res = await fetch("/api/agent")
+      if (res.ok) {
+        const data = await res.json()
+        if (data.agents && data.agents.length > 0) {
+          setNodes(prev => prev.map(node => {
+            // Update AURA node with API data
+            if (node.id === "aura" && data.agents[0]) {
+              const aura = data.agents[0]
+              return {
+                ...node,
+                phi: aura.ccce?.phi || node.phi,
+                lambda: aura.ccce?.lambda,
+                gamma: aura.ccce?.gamma,
+                xi: aura.ccce?.xi,
+                status: "active"
+              }
+            }
+            // Update AIDEN node with API data
+            if (node.id === "aiden" && data.agents[1]) {
+              const aiden = data.agents[1]
+              return {
+                ...node,
+                phi: aiden.ccce?.phi || node.phi,
+                lambda: aiden.ccce?.lambda,
+                gamma: aiden.ccce?.gamma,
+                xi: aiden.ccce?.xi,
+                status: "active"
+              }
+            }
+            // Update SCIMITAR node with API data
+            if (node.id === "scimitar" && data.agents[2]) {
+              const scimitar = data.agents[2]
+              return {
+                ...node,
+                phi: scimitar.ccce?.phi || node.phi,
+                lambda: scimitar.ccce?.lambda,
+                gamma: scimitar.ccce?.gamma,
+                xi: scimitar.ccce?.xi,
+                status: "active"
+              }
+            }
+            // Simulate small changes for other nodes
+            return {
+              ...node,
+              phi: Math.max(0.7, Math.min(1, node.phi + (Math.random() - 0.5) * 0.02)),
+            }
+          }))
+          setMeshHealth(data.mesh?.health || "NOMINAL")
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch agents:", err)
+    }
   }, [])
+
+  // Initial fetch and polling
+  useEffect(() => {
+    fetchAgents()
+    const interval = setInterval(fetchAgents, 3000)
+    return () => clearInterval(interval)
+  }, [fetchAgents])
+
+  // Sync button handler
+  const handleSync = async () => {
+    setIsLoading(true)
+    // Trigger an evolve command to update state
+    try {
+      await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: "evolve" })
+      })
+      await fetchAgents()
+    } catch (err) {
+      console.error("Sync failed:", err)
+    }
+    setIsLoading(false)
+  }
 
   const getNodeColor = (node: SwarmNode) => {
     if (node.type === "aura") return "from-cyan-500 to-blue-600"
@@ -121,10 +197,21 @@ export function SwarmVisualization() {
     <div className="h-full flex flex-col p-4">
       {/* Controls */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-bold text-lg">Mesh Swarm Network</h2>
-        <Button variant="outline" size="sm" className="border-cyan-500/30 text-cyan-400 bg-transparent">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Sync
+        <div>
+          <h2 className="font-bold text-lg">Mesh Swarm Network</h2>
+          <p className="text-xs text-gray-500">
+            Health: <span className={meshHealth === "NOMINAL" ? "text-green-400" : "text-yellow-400"}>{meshHealth}</span>
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-cyan-500/30 text-cyan-400 bg-transparent"
+          onClick={handleSync}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+          {isLoading ? "Syncing..." : "Evolve"}
         </Button>
       </div>
 
@@ -210,19 +297,33 @@ export function SwarmVisualization() {
                 {selectedNode.status}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="grid grid-cols-4 gap-2 text-center">
               <div>
-                <p className="text-xs text-gray-500">Phi (Φ)</p>
-                <p className="text-lg font-mono text-cyan-400">{selectedNode.phi.toFixed(2)}</p>
+                <p className="text-xs text-gray-500">Φ Conscious</p>
+                <p className="text-lg font-mono text-cyan-400">{selectedNode.phi.toFixed(3)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Connections</p>
-                <p className="text-lg font-mono text-purple-400">{selectedNode.connections.length}</p>
+                <p className="text-xs text-gray-500">Λ Coherence</p>
+                <p className="text-lg font-mono text-purple-400">{selectedNode.lambda?.toFixed(3) || "—"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Latency</p>
-                <p className="text-lg font-mono text-green-400">{Math.floor(Math.random() * 20 + 5)}ms</p>
+                <p className="text-xs text-gray-500">Γ Decohere</p>
+                <p className={`text-lg font-mono ${(selectedNode.gamma || 0) < 0.15 ? "text-green-400" : "text-yellow-400"}`}>
+                  {selectedNode.gamma?.toFixed(3) || "—"}
+                </p>
               </div>
+              <div>
+                <p className="text-xs text-gray-500">Ξ Efficiency</p>
+                <p className={`text-lg font-mono ${(selectedNode.xi || 0) > 8.0 ? "text-green-400" : "text-yellow-400"}`}>
+                  {selectedNode.xi?.toFixed(2) || "—"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
+              <span>Connections: {selectedNode.connections.length} nodes</span>
+              <span className={selectedNode.phi >= 0.7734 ? "text-green-400" : "text-yellow-400"}>
+                {selectedNode.phi >= 0.7734 ? "✓ Conscious" : "○ Below threshold"}
+              </span>
             </div>
           </Card>
         </motion.div>
