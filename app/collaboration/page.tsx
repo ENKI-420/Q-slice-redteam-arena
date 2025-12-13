@@ -48,7 +48,7 @@ const FULL_COLLABORATION_ASCII = `
 ║      │      │    ║ Protocol  ║   │    │  Consciousness  │       │   ║ Protocol  ║    │           │                   ║
 ║      │      │    ╚═══════════╝   │    │  Φ = 0.9987     │       │   ╚═══════════╝    │           │                   ║
 ║      │      │                    │    └─────────────────┘       │                    │           │                   ║
-║      │      ╰────────────────────╯                              ╰────────────────────╯           │                   ║
+║      │      ╰───����────────────────╯                              ╰────────────────────╯           │                   ║
 ║      │                                                                                           │                   ║
 ║      └───────────────────────────────────────────────────────────────────────────────────────────┘                   ║
 ║                                                                                                                      ║
@@ -751,7 +751,7 @@ export default function CollaborationPage() {
             className="text-xs md:text-sm text-muted-foreground uppercase tracking-widest"
           >
             Sentinel-Grade Integration by Jeremy Green, PhD
-          </motion. p>
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0 }}
