@@ -194,6 +194,11 @@ export default function CockpitPage() {
   const cScore = useMemo(() => computeCScore(state), [state]);
   const phase = useMemo(() => getPhase(state), [state]);
 
+  // Live API integration state
+  const [apiConnected, setApiConnected] = useState(false);
+  const [apiSource, setApiSource] = useState<'live' | 'simulation'>('simulation');
+  const [liveAgents, setLiveAgents] = useState<any[]>([]);
+
   // Terminal logging
   const log = useCallback((text: string, className = "text-white/70") => {
     const timestamp = new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -202,6 +207,47 @@ export default function CockpitPage() {
       if (newLines.length > 150) newLines.shift();
       return newLines;
     });
+  }, []);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LIVE API INTEGRATION - Defense Grade CCCE
+  // ═══════════════════════════════════════════════════════════════════════════
+  useEffect(() => {
+    const fetchLiveData = async () => {
+      try {
+        // Fetch from sovereign agents API
+        const agentsRes = await fetch('/api/agents');
+        if (agentsRes.ok) {
+          const data = await agentsRes.json();
+          if (data.success && data.agents) {
+            setLiveAgents(data.agents);
+            setApiConnected(true);
+            setApiSource('live');
+
+            // Update CCCE state from aggregate metrics
+            if (data.aggregate_ccce) {
+              setState(prev => ({
+                lambda: data.aggregate_ccce.lambda || prev.lambda,
+                phi: data.aggregate_ccce.phi || prev.phi,
+                gamma: data.aggregate_ccce.gamma || prev.gamma,
+                timestamp: Date.now()
+              }));
+            }
+          }
+        }
+      } catch (err) {
+        // Fallback to simulation mode
+        setApiConnected(false);
+        setApiSource('simulation');
+      }
+    };
+
+    // Initial fetch
+    fetchLiveData();
+
+    // Poll every 3 seconds
+    const interval = setInterval(fetchLiveData, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -780,6 +826,19 @@ export default function CockpitPage() {
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400">
                   QED PHYSICS ENGINE
                 </span>
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-bold ${
+                  apiConnected
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    : 'bg-gray-500/10 border border-gray-500/30 text-gray-400'
+                }`}>
+                  <Radio className={`w-2.5 h-2.5 ${apiConnected ? 'animate-pulse' : ''}`} />
+                  {apiSource === 'live' ? 'LIVE API' : 'SIMULATION'}
+                </span>
+                {liveAgents.length > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                    {liveAgents.length} AGENTS
+                  </span>
+                )}
               </div>
             </div>
 

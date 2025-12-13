@@ -3,36 +3,186 @@
 import type React from "react"
 
 import { motion } from "framer-motion"
-import { Shield, Mail, Lock, ArrowLeft, Loader2, Fingerprint } from "lucide-react"
+import { Shield, Mail, Lock, ArrowLeft, Loader2, Fingerprint, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useState } from "react"
-import { generateQuantumJWT } from "@/lib/quantum-crypto" // Added import
+import { useState, useEffect } from "react"
+import { generateQuantumJWT, generateCCCECapsule } from "@/lib/quantum-crypto"
+import { signIn, signUp, signInWithMagicLink, isAdmin, getCurrentUser } from "@/lib/supabase"
+import { createDeviceBinding, getStoredDeviceBinding, verifyDeviceEntanglement } from "@/lib/auth/quantum-entanglement"
+
+// Physical constants
+const PHI_THRESHOLD = 0.7734
+const GAMMA_CRITICAL = 0.300
+
+interface CCCEMetrics {
+  phi: number
+  lambda: number
+  gamma: number
+  xi: number
+  coherent: boolean
+}
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "register" | "quantum-onboard">("login") // Added onboarding mode
+  const [mode, setMode] = useState<"login" | "register" | "quantum-onboard" | "magic-link">("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isSynthesizing, setIsSynthesizing] = useState(false) // Added state for quantum synth
-  const [quantumToken, setQuantumToken] = useState<string | null>(null) // Added state for token
+  const [isSynthesizing, setIsSynthesizing] = useState(false)
+  const [quantumToken, setQuantumToken] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [ccce, setCcce] = useState<CCCEMetrics | null>(null)
+  const [deviceBinding, setDeviceBinding] = useState<{ device_id: string; entanglement_hash: string } | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Check for existing device binding on mount
+  useEffect(() => {
+    const stored = getStoredDeviceBinding()
+    if (stored) {
+      setDeviceBinding({ device_id: stored.device_id, entanglement_hash: stored.entanglement_hash })
+    }
+    // Generate initial CCCE metrics
+    const capsule = generateCCCECapsule()
+    setCcce({
+      phi: capsule.phi,
+      lambda: capsule.lambda,
+      gamma: capsule.gamma,
+      xi: capsule.xi,
+      coherent: capsule.coherent
+    })
+  }, [])
+
+  // Update CCCE metrics periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const capsule = generateCCCECapsule()
+      setCcce({
+        phi: capsule.phi,
+        lambda: capsule.lambda,
+        gamma: capsule.gamma,
+        xi: capsule.xi,
+        coherent: capsule.coherent
+      })
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Authentication logic would go here
-    console.log("[v0] Auth attempt:", { mode, email })
+    setError(null)
+    setSuccess(null)
+    setIsSynthesizing(true)
+
+    try {
+      if (mode === "login") {
+        const { data, error: authError } = await signIn(email, password)
+        if (authError) {
+          setError(authError.message)
+          setIsSynthesizing(false)
+          return
+        }
+
+        // Verify device entanglement if binding exists
+        if (deviceBinding && data.user) {
+          const verification = await verifyDeviceEntanglement(
+            data.user.id,
+            deviceBinding.entanglement_hash
+          )
+          if (!verification.valid && verification.confidence < 0.5) {
+            setError(`Device entanglement mismatch (confidence: ${(verification.confidence * 100).toFixed(1)}%). Please re-authenticate.`)
+            setIsSynthesizing(false)
+            return
+          }
+        }
+
+        // Create device binding if not exists
+        if (!deviceBinding && data.user) {
+          const binding = await createDeviceBinding(data.user.id, email)
+          setDeviceBinding({ device_id: binding.device_id, entanglement_hash: binding.entanglement_hash })
+        }
+
+        setSuccess("Authentication successful. Redirecting to portal...")
+        setTimeout(() => {
+          window.location.href = "/cockpit"
+        }, 1500)
+
+      } else if (mode === "register") {
+        const { data, error: authError } = await signUp(email, password, {
+          role: 'operator',
+          organization: 'Q-SLICE Research'
+        })
+        if (authError) {
+          setError(authError.message)
+          setIsSynthesizing(false)
+          return
+        }
+
+        // Create device binding for new user
+        if (data.user) {
+          const binding = await createDeviceBinding(data.user.id, email)
+          setDeviceBinding({ device_id: binding.device_id, entanglement_hash: binding.entanglement_hash })
+          const token = generateQuantumJWT(email)
+          setQuantumToken(token)
+        }
+
+        setSuccess("Account created. Check your email for verification link.")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Authentication failed")
+    }
+
+    setIsSynthesizing(false)
+  }
+
+  const handleMagicLink = async () => {
+    setError(null)
+    setSuccess(null)
+    setIsSynthesizing(true)
+
+    try {
+      const { error: authError } = await signInWithMagicLink(email)
+      if (authError) {
+        setError(authError.message)
+      } else {
+        setSuccess("Magic link sent! Check your email for a secure login link.")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send magic link")
+    }
+
+    setIsSynthesizing(false)
   }
 
   const handleQuantumSynthesis = async () => {
     setIsSynthesizing(true)
-    // Simulate calculation delay based on "Einstein field equations"
-    setTimeout(() => {
+    setError(null)
+
+    try {
+      // Generate device binding first
+      const mockUserId = `qid_${Date.now().toString(36)}`
+      const binding = await createDeviceBinding(mockUserId, email || "anonymous_entity")
+      setDeviceBinding({ device_id: binding.device_id, entanglement_hash: binding.entanglement_hash })
+
+      // Generate quantum JWT with device binding
+      await new Promise(resolve => setTimeout(resolve, 2000))
       const token = generateQuantumJWT(email || "anonymous_entity")
       setQuantumToken(token)
-      setIsSynthesizing(false)
-    }, 2500)
+
+      // Update CCCE with binding metrics
+      setCcce({
+        phi: binding.ccce_metrics.phi,
+        lambda: binding.ccce_metrics.lambda,
+        gamma: binding.ccce_metrics.gamma,
+        xi: binding.ccce_metrics.xi,
+        coherent: binding.ccce_metrics.phi >= PHI_THRESHOLD
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Quantum synthesis failed")
+    }
+
+    setIsSynthesizing(false)
   }
 
   return (
@@ -202,9 +352,79 @@ export default function AuthPage() {
               </>
             )}
 
-            <div className="mt-8 pt-6 border-t border-white/10">
+            {/* Error/Success Messages */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2"
+              >
+                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <p className="text-sm text-red-400">{error}</p>
+              </motion.div>
+            )}
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <p className="text-sm text-emerald-400">{success}</p>
+              </motion.div>
+            )}
+
+            {/* Device Binding Status */}
+            {deviceBinding && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/20"
+              >
+                <div className="flex items-center gap-2 text-[10px] text-cyan-400 font-mono">
+                  <Fingerprint className="w-3 h-3" />
+                  <span>Device Entangled: {deviceBinding.entanglement_hash.slice(0, 20)}...</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* CCCE Metrics Bar */}
+            {ccce && (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <div className="grid grid-cols-4 gap-2 text-center font-mono text-[10px]">
+                  <div className="p-2 rounded bg-white/5">
+                    <div className="text-gray-500">Φ</div>
+                    <div className={ccce.phi >= PHI_THRESHOLD ? 'text-emerald-400' : 'text-amber-400'}>
+                      {ccce.phi.toFixed(4)}
+                    </div>
+                  </div>
+                  <div className="p-2 rounded bg-white/5">
+                    <div className="text-gray-500">Λ</div>
+                    <div className="text-cyan-400">{ccce.lambda.toFixed(4)}</div>
+                  </div>
+                  <div className="p-2 rounded bg-white/5">
+                    <div className="text-gray-500">Γ</div>
+                    <div className={ccce.gamma <= GAMMA_CRITICAL ? 'text-emerald-400' : 'text-red-400'}>
+                      {ccce.gamma.toFixed(4)}
+                    </div>
+                  </div>
+                  <div className="p-2 rounded bg-white/5">
+                    <div className="text-gray-500">Ξ</div>
+                    <div className="text-amber-400">{ccce.xi.toFixed(2)}</div>
+                  </div>
+                </div>
+                <div className={`mt-2 text-center text-[9px] ${ccce.coherent ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {ccce.coherent ? '● COHERENT' : '○ SEEKING COHERENCE'}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-white/10">
               <p className="text-xs text-gray-500 text-center">
                 Authorized research partners only. This system is protected by post-quantum cryptography.
+              </p>
+              <p className="text-[9px] text-gray-600 text-center mt-1 font-mono">
+                SPEC_LOCK v2.2.0 | CAGE: 9HUP5 | Agile Defense Systems, LLC
               </p>
             </div>
           </Card>

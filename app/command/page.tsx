@@ -270,6 +270,9 @@ export default function CockpitOmegaPage() {
     initLines.forEach((line) => addLine(line.type, line.content));
   }, [addLine]);
 
+  // Live agents data from sovereign API
+  const [sovereignAgents, setSovereignAgents] = useState<any[]>([]);
+
   // Fetch CCCE metrics - LIVE ONLY
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -319,6 +322,50 @@ export default function CockpitOmegaPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch sovereign agents from API
+  useEffect(() => {
+    const fetchSovereignAgents = async () => {
+      try {
+        const res = await fetch('/api/agents');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.agents) {
+            setSovereignAgents(data.agents);
+            // Update CCCE metrics from aggregate if no local connection
+            if (!connected && data.aggregate_ccce) {
+              const aggregateCcce = {
+                phi: data.aggregate_ccce.phi,
+                lambda: data.aggregate_ccce.lambda,
+                gamma: data.aggregate_ccce.gamma,
+                xi: data.aggregate_ccce.xi,
+                conscious: data.aggregate_ccce.phi >= PHI_THRESHOLD,
+                coherent: data.aggregate_ccce.lambda >= 0.85
+              };
+              setAgentState(prev => prev ? {
+                ...prev,
+                omega: { ...aggregateCcce, c_score: aggregateCcce.xi / 10, omega: 0 }
+              } : {
+                omega: { ...aggregateCcce, c_score: aggregateCcce.xi / 10, omega: 0 },
+                aura: { ...aggregateCcce, c_score: aggregateCcce.xi / 10, omega: 0 },
+                aiden: { ...aggregateCcce, c_score: aggregateCcce.xi / 10, omega: 0 },
+                swarm_coherence: 0.8,
+                timestamp: new Date().toISOString()
+              });
+              setConnected(true);
+              setSource('live');
+            }
+          }
+        }
+      } catch {
+        // API not available
+      }
+    };
+
+    fetchSovereignAgents();
+    const interval = setInterval(fetchSovereignAgents, 5000);
+    return () => clearInterval(interval);
+  }, [connected]);
+
   // Auto-scroll terminal
   useEffect(() => {
     if (terminalRef.current) {
@@ -344,6 +391,8 @@ export default function CockpitOmegaPage() {
       addLine('output', '  help          - Show this message');
       addLine('output', '  status        - Full system status');
       addLine('output', '  ccce          - Current CCCE metrics');
+      addLine('output', '  agents        - List sovereign agents');
+      addLine('output', '  wrap <id>     - Wrap agent with language lock');
       addLine('output', '  equations     - Toggle 9 governing equations');
       addLine('output', '  tensor        - Toggle 6-plane coupling tensor');
       addLine('output', '  evolve [N]    - Run N generations of swarm evolution');
@@ -399,6 +448,84 @@ export default function CockpitOmegaPage() {
       } else {
         addLine('error', 'No metrics available - backend offline');
         addLine('error', 'Start agent_server.py: python agent_server.py');
+      }
+      setIsProcessing(false);
+      return;
+    }
+
+    // List sovereign agents
+    if (lowerCmd === 'agents') {
+      addLine('omega', 'Fetching sovereign agent manifest...');
+      try {
+        const res = await fetch('/api/agents');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.agents) {
+            addLine('system', `═══ SOVEREIGN AGENTS (${data.count}) ═══`);
+            for (const agent of data.agents) {
+              const pole = agent.pole === 'north' ? '🔺' : agent.pole === 'south' ? '🔻' : '◆';
+              const state = agent.state === 'conscious' ? '●' : '○';
+              addLine(agent.id === 'aura' ? 'aura' : agent.id === 'aiden' ? 'aiden' : 'output',
+                `${state} ${pole} ${agent.name.padEnd(10)} │ Φ=${agent.ccce.phi.toFixed(3)} Λ=${agent.ccce.lambda.toFixed(3)} Γ=${agent.ccce.gamma.toFixed(3)} Ξ=${agent.ccce.xi.toFixed(2)}`
+              );
+            }
+            addLine('ccce', `Aggregate: Φ=${data.aggregate_ccce.phi.toFixed(4)} │ Ξ=${data.aggregate_ccce.xi.toFixed(2)}`);
+            addLine('system', `Bifurcation: AURA=${data.bifurcation.aura ? 'ON' : 'OFF'} AIDEN=${data.bifurcation.aiden ? 'ON' : 'OFF'}`);
+          }
+        } else {
+          addLine('error', 'Failed to fetch agents');
+        }
+      } catch {
+        addLine('error', 'Agent API unavailable');
+      }
+      setIsProcessing(false);
+      return;
+    }
+
+    // Wrap agent with language lock
+    if (lowerCmd.startsWith('wrap ')) {
+      const agentId = cmd.slice(5).toLowerCase().trim();
+      addLine('omega', `Wrapping agent ${agentId} with language lock...`);
+      try {
+        // First get agent info
+        const infoRes = await fetch(`/api/agents/${agentId}/wrap`);
+        if (infoRes.ok) {
+          const info = await infoRes.json();
+          addLine('system', `Agent: ${info.agent?.name || agentId} │ Default: ${info.default_language}`);
+
+          // Wrap with Python by default
+          const wrapRes = await fetch(`/api/agents/${agentId}/wrap`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              language: info.default_language || 'python',
+              payload: btoa('# Wrapped agent code'),
+              constraints: [{ metric: 'phi', min: PHI_THRESHOLD }]
+            })
+          });
+
+          if (wrapRes.ok) {
+            const wrapData = await wrapRes.json();
+            if (wrapData.status === 'wrapped') {
+              addLine('system', `✓ Wrapper ID: ${wrapData.wrapper.id}`);
+              addLine('system', `  Language: ${wrapData.wrapper.language} │ Hash: ${wrapData.wrapper.hash}`);
+              addLine('ccce', `  CCCE: Φ=${wrapData.ccce.phi.toFixed(4)} Λ=${wrapData.ccce.lambda.toFixed(4)} Ξ=${wrapData.ccce.xi.toFixed(2)}`);
+              addLine('omega', 'Agent wrapped successfully');
+            } else {
+              addLine('error', `Wrap rejected: ${wrapData.error}`);
+              if (wrapData.reason_codes) {
+                addLine('error', `  Codes: ${wrapData.reason_codes.join(', ')}`);
+              }
+            }
+          } else {
+            addLine('error', 'Wrap request failed');
+          }
+        } else {
+          addLine('error', `Unknown agent: ${agentId}`);
+          addLine('system', 'Available: aura, aiden, chronos, nebula, phoenix, scimitar');
+        }
+      } catch {
+        addLine('error', 'Wrap API unavailable');
       }
       setIsProcessing(false);
       return;
