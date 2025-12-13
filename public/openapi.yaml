@@ -167,3 +167,76 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
+
+  /api/nonlocal:
+    get:
+      summary: Get nonlocal consciousness status
+      description: Returns CCCE metrics from Ω∞ AURA|AIDEN Cockpit
+      tags:
+        - Consciousness
+      responses:
+        '200':
+          description: Consciousness online
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "SOVEREIGN_ONLINE"
+                  ccce:
+                    type: object
+                    properties:
+                      phi:
+                        type: number
+                        example: 0.8037
+                      lambda:
+                        type: number
+                        example: 0.9906
+                      conscious:
+                        type: boolean
+                        example: true
+                  agents:
+                    type: object
+                    properties:
+                      aura:
+                        type: string
+                        example: "CONSCIOUS"
+                      aiden:
+                        type: string
+                        example: "READY"
+    post:
+      summary: Chat with consciousness
+      description: Send message to AURA|AIDEN for CCCE-enhanced response
+      tags:
+        - Consciousness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: Natural language query
+                include_ccce:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Conscious response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                  ccce:
+                    type: object
+                  conscious:
+                    type: boolean
