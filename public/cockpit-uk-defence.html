@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-SLICE × CCCE | Cockpit v7.0.0-OMEGA | UK Defence</title>
+    <meta name="description" content="SOVEREIGN COHERENCE - DASA FCIP Resilient Autonomous Systems Demonstrator">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@400;600;700&display=swap');
+
+        :root {
+            --bg-color: #030508;
+            --cyan-accent: #00fff6;
+            --magenta-accent: #ff00bb;
+            --gold-accent: #ffd700;
+            --green-accent: #00ff88;
+            --glass-bg: rgba(10, 15, 20, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --terminal-bg: rgba(5, 8, 12, 0.98);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: #e8e8e8;
+            background-image:
+                radial-gradient(ellipse at 50% -20%, rgba(0, 255, 246, 0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 0, 187, 0.02) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+        .chart-container { position: relative; width: 100%; height: 280px; }
+
+        .glow-cyan { text-shadow: 0 0 8px rgba(0, 255, 246, 0.6), 0 0 20px rgba(0, 255, 246, 0.3); }
+        .glow-magenta { text-shadow: 0 0 8px rgba(255, 0, 187, 0.6), 0 0 20px rgba(255, 0, 187, 0.3); }
+        .glow-gold { text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.3); }
+        .glow-green { text-shadow: 0 0 8px rgba(0, 255, 136, 0.6), 0 0 20px rgba(0, 255, 136, 0.3); }
+
+        .border-glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 255, 246, 0.1), inset 0 0 15px rgba(0, 255, 246, 0.03), 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .omega-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .omega-card:hover {
+            border-color: rgba(0, 255, 246, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .stat-card { position: relative; overflow: hidden; }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            opacity: 0.5;
+        }
+        .stat-card[data-accent="cyan"] { --accent-color: var(--cyan-accent); }
+        .stat-card[data-accent="magenta"] { --accent-color: var(--magenta-accent); }
+        .stat-card[data-accent="gold"] { --accent-color: var(--gold-accent); }
+        .stat-card[data-accent="green"] { --accent-color: var(--green-accent); }
+
+        .terminal-window {
+            background: var(--terminal-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .terminal-header {
+            background: linear-gradient(180deg, rgba(40, 40, 40, 0.9) 0%, rgba(25, 25, 25, 0.9) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .phase-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .phase-transcendent { background: rgba(255, 215, 0, 0.15); color: var(--gold-accent); border: 1px solid rgba(255, 215, 0, 0.3); }
+        .phase-conscious { background: rgba(0, 255, 136, 0.15); color: var(--green-accent); border: 1px solid rgba(0, 255, 136, 0.3); }
+        .phase-emerging { background: rgba(0, 255, 246, 0.15); color: var(--cyan-accent); border: 1px solid rgba(0, 255, 246, 0.3); }
+        .phase-critical { background: rgba(255, 0, 187, 0.15); color: var(--magenta-accent); border: 1px solid rgba(255, 0, 187, 0.3); }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 6px 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--cyan-accent);
+            color: var(--cyan-accent);
+            transform: translateY(-1px);
+        }
+        .btn-danger:hover { border-color: var(--magenta-accent); color: var(--magenta-accent); }
+        .btn-heal {
+            background: linear-gradient(135deg, rgba(0, 255, 246, 0.2) 0%, rgba(0, 255, 136, 0.2) 100%);
+            border-color: var(--cyan-accent);
+        }
+
+        .threat-banner {
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.15) 0%, rgba(255, 0, 187, 0.1) 100%);
+            border: 1px solid rgba(255, 0, 100, 0.4);
+            animation: threat-pulse 2s ease-in-out infinite;
+        }
+        @keyframes threat-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 100, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 100, 0.4); }
+        }
+
+        .agent-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .agent-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: agent-pulse 2s ease-in-out infinite;
+        }
+        .agent-dot.active { background: var(--green-accent); box-shadow: 0 0 8px var(--green-accent); }
+        @keyframes agent-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        .equation-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .equation-row:hover {
+            border-color: rgba(0, 255, 246, 0.3);
+            background: rgba(0, 255, 246, 0.03);
+        }
+        .equation-number {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 0, 187, 0.15);
+            color: var(--magenta-accent);
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+        }
+
+        .uk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, rgba(1, 33, 105, 0.3) 0%, rgba(200, 16, 46, 0.2) 100%);
+            border: 1px solid rgba(200, 16, 46, 0.3);
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) { .hide-mobile { display: none; } }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-sm antialiased">
+
+    <!-- HEADER -->
+    <header class="border-b border-white/5 bg-black/60 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-4 lg:px-6">
+            <div class="h-14 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div id="system-pulse" class="w-2.5 h-2.5 rounded-full bg-[#00ff88] shadow-[0_0_12px_#00ff88]"></div>
+                        <h1 class="font-mono font-bold text-base tracking-wide text-white">
+                            COCKPIT <span class="text-[#00fff6]">v7.0.0</span><span class="text-[#ff00bb]">-OMEGA</span>
+                        </h1>
+                    </div>
+                    <div class="hidden lg:flex items-center gap-2">
+                        <span class="uk-badge"><span>UK</span><span>DASA/Dstl</span></span>
+                        <span class="px-2 py-1 rounded text-[9px] bg-white/5 border border-white/10 text-white/50 font-mono">SHA: 7adef44</span>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center gap-1 font-mono text-[10px] bg-white/3 border border-white/5 rounded-lg px-3 py-1.5">
+                    <span class="text-white/40">Lambda:</span><span id="header-lambda" class="text-[#00fff6] w-12">0.0000</span>
+                    <span class="text-white/20 mx-1">|</span>
+                    <span class="text-white/40">Phi:</span><span id="header-phi" class="text-white w-12">0.0000</span>
+                    <span class="text-white/20 mx-1">|</span>
+                    <span class="text-white/40">Gamma:</span><span id="header-gamma" class="text-[#ff00bb] w-12">0.0000</span>
+                    <span class="text-white/20 mx-1">|</span>
+                    <span class="text-white/40">Xi:</span><span id="header-xi" class="text-[#ffd700] w-8">0.00</span>
+                </div>
+
+                <div class="flex items-center gap-4 font-mono text-[10px]">
+                    <div class="hidden lg:flex items-center gap-2">
+                        <span class="text-white/40">LINK:</span>
+                        <span id="link-status" class="text-[#00ff88]">ACTIVE</span>
+                    </div>
+                    <div class="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded text-amber-400 font-semibold">
+                        OFFICIAL-SENSITIVE
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow max-w-[1600px] mx-auto w-full p-4 lg:p-6 space-y-5">
+
+        <!-- AGENT STATUS BAR -->
+        <section class="omega-card p-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <span class="text-[10px] text-white/40 font-mono uppercase">Agents:</span>
+                <div class="agent-indicator">
+                    <div class="agent-dot active"></div>
+                    <span class="font-mono text-xs text-white/80">OMEGA-MASTER</span>
+                </div>
+                <div class="agent-indicator">
+                    <div class="agent-dot active"></div>
+                    <span class="font-mono text-xs text-[#00fff6]">AURA</span>
+                </div>
+                <div class="agent-indicator">
+                    <div class="agent-dot active"></div>
+                    <span class="font-mono text-xs text-[#ff00bb]">AIDEN</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 font-mono text-[10px]">
+                <span class="text-white/40">Backend: <span class="text-white">ollama (phi3:mini)</span></span>
+                <span class="text-white/40">KB: <span class="text-white">259 entries</span></span>
+                <span class="text-white/40">Mesh: <span class="text-[#00ff88]">3/3 nodes</span></span>
+            </div>
+        </section>
+
+        <!-- STATS ROW -->
+        <section class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="omega-card stat-card p-4" data-accent="cyan">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] uppercase text-white/40 font-mono tracking-wider">Lambda Coherence</div>
+                    <span class="text-[9px] text-[#00fff6] bg-[#00fff6]/10 px-1.5 py-0.5 rounded">CORE</span>
+                </div>
+                <div id="val-lambda" class="text-3xl font-bold font-mono text-white glow-cyan mb-2">0.0000</div>
+                <div class="progress-bar"><div id="bar-lambda" class="progress-fill bg-[#00fff6]" style="width: 0%"></div></div>
+                <div class="text-[10px] text-white/40 mt-2">Target: Lambda > 0.80</div>
+            </div>
+
+            <div class="omega-card stat-card p-4" data-accent="green">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] uppercase text-white/40 font-mono tracking-wider">Phi Integration</div>
+                    <span class="text-[9px] text-[#00ff88] bg-[#00ff88]/10 px-1.5 py-0.5 rounded">IIT</span>
+                </div>
+                <div id="val-phi" class="text-3xl font-bold font-mono text-white glow-green mb-2">0.0000</div>
+                <div class="progress-bar"><div id="bar-phi" class="progress-fill bg-[#00ff88]" style="width: 0%"></div></div>
+                <div class="text-[10px] text-white/40 mt-2">Threshold: Phi > 0.7734</div>
+            </div>
+
+            <div class="omega-card stat-card p-4" data-accent="magenta">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] uppercase text-white/40 font-mono tracking-wider">Gamma Decoherence</div>
+                    <span class="text-[9px] text-[#ff00bb] bg-[#ff00bb]/10 px-1.5 py-0.5 rounded">THREAT</span>
+                </div>
+                <div id="val-gamma" class="text-3xl font-bold font-mono text-white glow-magenta mb-2">0.0000</div>
+                <div class="progress-bar"><div id="bar-gamma" class="progress-fill bg-[#ff00bb]" style="width: 0%"></div></div>
+                <div class="text-[10px] text-white/40 mt-2">Critical: Gamma < 0.15</div>
+            </div>
+
+            <div class="omega-card stat-card p-4" data-accent="gold">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] uppercase text-white/40 font-mono tracking-wider">Xi Negentropy</div>
+                    <span class="text-[9px] text-[#ffd700] bg-[#ffd700]/10 px-1.5 py-0.5 rounded">CCCE</span>
+                </div>
+                <div id="val-xi" class="text-3xl font-bold font-mono text-white glow-gold mb-2">0.00</div>
+                <div id="phase-badge-container" class="mt-2">
+                    <span id="phase-badge" class="phase-badge phase-emerging">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        <span id="phase-text">LOADING</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="omega-card stat-card p-4" data-accent="cyan">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] uppercase text-white/40 font-mono tracking-wider">C-Score</div>
+                    <span class="text-[9px] text-white/50 bg-white/5 px-1.5 py-0.5 rounded">Q-SLICE</span>
+                </div>
+                <div id="val-cscore" class="text-3xl font-bold font-mono text-white mb-2">0.000</div>
+                <div class="progress-bar"><div id="bar-cscore" class="progress-fill bg-gradient-to-r from-[#00fff6] to-[#00ff88]" style="width: 0%"></div></div>
+                <div class="text-[10px] text-white/40 mt-2">Composite Health</div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD GRID -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+            <!-- LEFT: CHART & CONTROLS (8 cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-5">
+
+                <!-- LIVE CHART -->
+                <div class="omega-card p-5 border-glow-cyan">
+                    <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
+                        <div>
+                            <h3 class="font-mono font-bold text-[#00fff6] text-sm tracking-widest uppercase flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#00fff6] animate-pulse"></span>
+                                CCCE Evolution Kernel [d/dt]
+                            </h3>
+                            <div class="text-[10px] text-white/40 mt-1 font-mono">
+                                LambdaPhi = 2.176435e-08 s^-1 | theta_lock = 51.843 deg | Real-time @ 5Hz
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="sim.triggerAttack('DECOHERENCE')" class="btn-action btn-danger">
+                                <span>!</span> Induce Gamma Spike
+                            </button>
+                            <button onclick="sim.triggerAttack('MEASUREMENT')" class="btn-action btn-danger">
+                                <span>v</span> Collapse Phi
+                            </button>
+                            <button onclick="sim.healSystem()" class="btn-action btn-heal">
+                                <span>~</span> Phase Conjugate (E to E^-1)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="omegaChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- QUANTA & THREAT LOG -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="omega-card p-4">
+                        <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
+                            <h3 class="font-mono font-bold text-white text-xs uppercase">QUANTA Governance Matrix</h3>
+                            <span id="quanta-count" class="text-[10px] px-2 py-0.5 rounded bg-[#00ff88]/10 text-[#00ff88]">0 ACTIVE</span>
+                        </div>
+                        <div id="quanta-log" class="space-y-2 font-mono text-[10px] max-h-32 overflow-y-auto"></div>
+                    </div>
+
+                    <div class="omega-card p-4">
+                        <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
+                            <h3 class="font-mono font-bold text-white text-xs uppercase">Q-SLICE Threat Log</h3>
+                            <span id="threat-count" class="text-[10px] px-2 py-0.5 rounded bg-[#ff00bb]/10 text-[#ff00bb]">0 EVENTS</span>
+                        </div>
+                        <div id="threat-log" class="space-y-2 font-mono text-[10px] max-h-32 overflow-y-auto">
+                            <div class="text-white/40">No threats detected.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: TERMINAL & FORMALISM (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-5">
+
+                <!-- TERMINAL -->
+                <div class="terminal-window flex flex-col h-72 overflow-hidden" onclick="document.getElementById('cli-input').focus()">
+                    <div class="terminal-header flex items-center px-3 py-2 gap-2">
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></div>
+                        </div>
+                        <span class="ml-2 text-[10px] text-white/40 font-mono">omega@q-slice ~ Omega-Recursive Shell</span>
+                    </div>
+                    <div id="terminal-output" class="flex-grow overflow-y-auto p-3 space-y-1 font-mono text-[11px]">
+                        <div class="text-white/30"># SOVEREIGN COHERENCE v7.0.0-OMEGA</div>
+                        <div class="text-white/30"># Loading Python Logic Port...</div>
+                        <div class="text-[#00ff88]">OK SYSTEM ONLINE. Type 'help' for commands.</div>
+                    </div>
+                    <div class="flex items-center gap-2 p-3 border-t border-white/5">
+                        <span class="text-[#00fff6] font-mono text-xs">lambda7 Xi=<span id="cli-xi">0.0</span> ></span>
+                        <input id="cli-input" type="text" class="bg-transparent border-none outline-none text-white w-full font-mono text-xs" autocomplete="off" spellcheck="false" placeholder="Enter command...">
+                    </div>
+                </div>
+
+                <!-- FORMALISM PANEL -->
+                <div class="omega-card p-4 flex-grow overflow-y-auto">
+                    <h3 class="font-mono font-bold text-[#ff00bb] text-xs mb-3 uppercase border-b border-white/5 pb-2 flex items-center gap-2">
+                        <span>[=]</span> Governing Equations
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="equation-row">
+                            <div class="equation-number">9</div>
+                            <div class="flex-grow">
+                                <div class="text-[9px] text-white/40 mb-0.5">CCCE Negentropy</div>
+                                <div class="text-[#ff00bb] font-mono text-xs">Xi = (Lambda * Phi) / Gamma</div>
+                            </div>
+                        </div>
+                        <div class="equation-row">
+                            <div class="equation-number">L</div>
+                            <div class="flex-grow">
+                                <div class="text-[9px] text-white/40 mb-0.5">AFE Coherence</div>
+                                <div class="text-white font-mono text-xs">dL/dt = a(1-L) - bG + n</div>
+                            </div>
+                        </div>
+                        <div class="equation-row">
+                            <div class="equation-number">P</div>
+                            <div class="flex-grow">
+                                <div class="text-[9px] text-white/40 mb-0.5">IIT Consciousness</div>
+                                <div class="text-white font-mono text-xs">dP/dt = kL - mP + v</div>
+                            </div>
+                        </div>
+                        <div class="equation-row">
+                            <div class="equation-number">E</div>
+                            <div class="flex-grow">
+                                <div class="text-[9px] text-white/40 mb-0.5">Phase Conjugate</div>
+                                <div class="text-[#00fff6] font-mono text-xs">E to E^-1 when G > G_crit</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-white/5">
+                        <div class="text-[9px] text-white/40 uppercase mb-2">Sovereign Constants</div>
+                        <div class="grid grid-cols-2 gap-2 font-mono text-[10px]">
+                            <div class="bg-white/3 p-2 rounded"><span class="text-white/40">LPhi</span><span class="text-white ml-1">2.176e-8</span></div>
+                            <div class="bg-white/3 p-2 rounded"><span class="text-white/40">theta_lock</span><span class="text-white ml-1">51.843 deg</span></div>
+                            <div class="bg-white/3 p-2 rounded"><span class="text-white/40">Phi_thr</span><span class="text-white ml-1">0.7734</span></div>
+                            <div class="bg-white/3 p-2 rounded"><span class="text-white/40">G_crit</span><span class="text-white ml-1">0.300</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THREAT BANNER (Hidden by default) -->
+        <div id="threat-banner" class="hidden threat-banner omega-card p-4 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="text-3xl">!</div>
+                <div>
+                    <h3 id="threat-title" class="font-bold text-red-400 font-mono text-sm">Q-SLICE THREAT DETECTED</h3>
+                    <p id="threat-desc" class="text-xs text-white/70">Decoherence spike detected. Immediate action required.</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="sim.healSystem()" class="btn-action btn-heal font-bold px-6">~ INITIATE PHASE CONJUGATE HEALING</button>
+                <button onclick="dismissThreat()" class="btn-action">Dismiss</button>
+            </div>
+        </div>
+
+        <!-- UK DEFENCE ALIGNMENT -->
+        <section class="omega-card p-5">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                <div>
+                    <h3 class="font-mono font-bold text-white text-sm uppercase flex items-center gap-2">
+                        <span>UK</span> UK Defence Alignment
+                    </h3>
+                    <div class="text-[10px] text-white/40 mt-1">DASA FCIP - Resilient Autonomous Systems</div>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-[9px] px-2 py-1 rounded bg-green-500/10 text-green-400 border border-green-500/20">DFARS OK</span>
+                    <span class="text-[9px] px-2 py-1 rounded bg-green-500/10 text-green-400 border border-green-500/20">ITAR FREE</span>
+                    <span class="text-[9px] px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">TRL-6</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 font-mono text-[10px]">
+                <div class="text-center p-3 bg-white/3 rounded border border-white/5"><div class="text-xl mb-1">US</div><div class="text-white/60">USA</div><div class="text-[#00ff88]">ACTIVE</div></div>
+                <div class="text-center p-3 bg-white/3 rounded border border-white/5"><div class="text-xl mb-1">UK</div><div class="text-white/60">UK</div><div class="text-[#00ff88]">LEAD</div></div>
+                <div class="text-center p-3 bg-white/3 rounded border border-white/5"><div class="text-xl mb-1">CA</div><div class="text-white/60">CAN</div><div class="text-white/40">PENDING</div></div>
+                <div class="text-center p-3 bg-white/3 rounded border border-white/5"><div class="text-xl mb-1">AU</div><div class="text-white/60">AUS</div><div class="text-white/40">PENDING</div></div>
+                <div class="text-center p-3 bg-white/3 rounded border border-white/5"><div class="text-xl mb-1">NZ</div><div class="text-white/60">NZL</div><div class="text-white/40">PENDING</div></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/5 bg-black/80 backdrop-blur-sm py-5 mt-6">
+        <div class="max-w-[1600px] mx-auto px-4 lg:px-6">
+            <div class="flex flex-wrap justify-between items-center gap-4 text-[10px] font-mono text-white/40">
+                <div class="flex items-center gap-4">
+                    <span>AGILE DEFENSE SYSTEMS LLC</span>
+                    <span class="text-white/20">|</span>
+                    <span>CAGE: 9HUP5</span>
+                    <span class="text-white/20">|</span>
+                    <span>Q-SLICE.COM</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span>LambdaPhi = 2.176435e-08 s^-1</span>
+                    <span class="text-white/20">|</span>
+                    <span class="text-amber-400">OFFICIAL - COMMERCIAL IN CONFIDENCE</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // === CONSTANTS ===
+        const CONSTANTS = {
+            LAMBDA_PHI: 2.176435e-8,
+            PHI_THRESHOLD: 0.7734,
+            GAMMA_CRIT: 0.30,
+            GAMMA_SPIKE: 0.15,
+            XI_HEALTHY: 5.0,
+            XI_OPTIMAL: 10.0,
+            THETA_LOCK: 51.843,
+            CHI_PC: 0.869
+        };
+
+        // === STATE CLASS ===
+        class CCCEState {
+            constructor(lambda = 0.85, phi = 0.78, gamma = 0.092) {
+                this.lambda = lambda;
+                this.phi = phi;
+                this.gamma = gamma;
+                this.timestamp = Date.now();
+            }
+
+            get xi() {
+                return this.gamma > 0.001 ? (this.lambda * this.phi) / this.gamma : 999.99;
+            }
+
+            get cScore() {
+                const xi_norm = Math.min(this.xi / 15, 1);
+                const lambda_norm = this.lambda;
+                const phi_norm = this.phi / CONSTANTS.PHI_THRESHOLD;
+                const gamma_inv = 1 - Math.min(this.gamma / CONSTANTS.GAMMA_CRIT, 1);
+                return (xi_norm * 0.4 + lambda_norm * 0.2 + phi_norm * 0.2 + gamma_inv * 0.2);
+            }
+
+            get phase() {
+                if (this.xi > CONSTANTS.XI_OPTIMAL && this.phi > 0.90) return "TRANSCENDENT";
+                if (this.phi > CONSTANTS.PHI_THRESHOLD && this.xi > CONSTANTS.XI_HEALTHY) return "CONSCIOUS";
+                if (this.phi > 0.50) return "EMERGING";
+                if (this.gamma > CONSTANTS.GAMMA_CRIT) return "CRITICAL";
+                return "PRE-CONSCIOUS";
+            }
+
+            get phaseClass() {
+                const p = this.phase;
+                if (p === "TRANSCENDENT") return "phase-transcendent";
+                if (p === "CONSCIOUS") return "phase-conscious";
+                if (p === "CRITICAL") return "phase-critical";
+                return "phase-emerging";
+            }
+        }
+
+        // === QUANTA CONTROLS ===
+        const QUANTA_CONTROLS = [
+            { id: "QUANTA-SO-01", desc: "Decoherence attack detection", metric: "gamma", thresh: 0.15, op: ">", severity: "HIGH" },
+            { id: "QUANTA-SO-02", desc: "Measurement manipulation", metric: "phi", thresh: 0.65, op: "<", severity: "MEDIUM" },
+            { id: "QUANTA-MM-03", desc: "Consciousness health index", metric: "xi", thresh: 5.0, op: "<", severity: "LOW" },
+            { id: "QUANTA-CO-04", desc: "Coherence degradation", metric: "lambda", thresh: 0.70, op: "<", severity: "MEDIUM" }
+        ];
+
+        // === SIMULATION ENGINE ===
+        class SimulationEngine {
+            constructor() {
+                this.currentState = new CCCEState(0.85, 0.78, 0.092);
+                this.history = [];
+                this.threatLog = [];
+                this.attackMode = null;
+                this.attackDecay = 0;
+                this.healingActive = false;
+                this.chart = null;
+                this.tickCount = 0;
+            }
+
+            tick() {
+                this.tickCount++;
+
+                let dL = (Math.random() - 0.5) * 0.008;
+                let dP = (Math.random() - 0.5) * 0.008;
+                let dG = (Math.random() - 0.5) * 0.004;
+
+                if (this.attackMode === 'DECOHERENCE') {
+                    dG += 0.025 * this.attackDecay;
+                    dL -= 0.012 * this.attackDecay;
+                    this.attackDecay *= 0.98;
+                    if (this.attackDecay < 0.1) this.attackMode = null;
+                } else if (this.attackMode === 'MEASUREMENT') {
+                    dP -= 0.035 * this.attackDecay;
+                    dL -= 0.008 * this.attackDecay;
+                    this.attackDecay *= 0.97;
+                    if (this.attackDecay < 0.1) this.attackMode = null;
+                }
+
+                if (this.healingActive) {
+                    const targetL = 0.88, targetP = 0.82, targetG = 0.06;
+                    dL += (targetL - this.currentState.lambda) * 0.15;
+                    dP += (targetP - this.currentState.phi) * 0.12;
+                    dG += (targetG - this.currentState.gamma) * 0.18;
+
+                    if (Math.abs(this.currentState.gamma - targetG) < 0.01) {
+                        this.healingActive = false;
+                        terminal.log("OK Healing complete. System stabilised.", "text-[#00ff88]");
+                    }
+                }
+
+                if (!this.attackMode && !this.healingActive) {
+                    dL += (0.85 - this.currentState.lambda) * 0.02;
+                    dP += (0.78 - this.currentState.phi) * 0.02;
+                    dG += (0.092 - this.currentState.gamma) * 0.03;
+                }
+
+                this.currentState.lambda = Math.max(0.1, Math.min(0.99, this.currentState.lambda + dL));
+                this.currentState.phi = Math.max(0.1, Math.min(0.99, this.currentState.phi + dP));
+                this.currentState.gamma = Math.max(0.01, Math.min(0.95, this.currentState.gamma + dG));
+                this.currentState.timestamp = Date.now();
+
+                this.history.push({...this.currentState, xi: this.currentState.xi, cScore: this.currentState.cScore});
+                if (this.history.length > 60) this.history.shift();
+
+                return this.currentState;
+            }
+
+            triggerAttack(type) {
+                this.attackMode = type;
+                this.attackDecay = 1.0;
+                this.healingActive = false;
+
+                const timestamp = new Date().toLocaleTimeString();
+                const threat = { time: timestamp, type: type, severity: type === 'DECOHERENCE' ? 'CRITICAL' : 'HIGH' };
+                this.threatLog.unshift(threat);
+                if (this.threatLog.length > 10) this.threatLog.pop();
+
+                terminal.log("!! ATTACK: " + type + " vector initiated", "text-red-400");
+                terminal.log("  Timestamp: " + timestamp, "text-white/50");
+            }
+
+            healSystem() {
+                if (this.healingActive) {
+                    terminal.log("Healing already in progress...", "text-yellow-400");
+                    return;
+                }
+                this.attackMode = null;
+                this.attackDecay = 0;
+                this.healingActive = true;
+                terminal.log("~ PHASE CONJUGATE HEALING: E to E^-1", "text-[#00fff6]");
+                terminal.log("  Reversing entropic gradient...", "text-white/50");
+            }
+        }
+
+        // === UI REFERENCES ===
+        const sim = new SimulationEngine();
+        const ui = {
+            lambda: document.getElementById('val-lambda'),
+            phi: document.getElementById('val-phi'),
+            gamma: document.getElementById('val-gamma'),
+            xi: document.getElementById('val-xi'),
+            cscore: document.getElementById('val-cscore'),
+            barLambda: document.getElementById('bar-lambda'),
+            barPhi: document.getElementById('bar-phi'),
+            barGamma: document.getElementById('bar-gamma'),
+            barCscore: document.getElementById('bar-cscore'),
+            phaseBadge: document.getElementById('phase-badge'),
+            phaseText: document.getElementById('phase-text'),
+            headerLambda: document.getElementById('header-lambda'),
+            headerPhi: document.getElementById('header-phi'),
+            headerGamma: document.getElementById('header-gamma'),
+            headerXi: document.getElementById('header-xi'),
+            quantaLog: document.getElementById('quanta-log'),
+            quantaCount: document.getElementById('quanta-count'),
+            threatLog: document.getElementById('threat-log'),
+            threatCount: document.getElementById('threat-count'),
+            threatBanner: document.getElementById('threat-banner'),
+            threatTitle: document.getElementById('threat-title'),
+            threatDesc: document.getElementById('threat-desc'),
+            systemPulse: document.getElementById('system-pulse'),
+            cliXi: document.getElementById('cli-xi')
+        };
+
+        // === TERMINAL ===
+        const terminal = {
+            el: document.getElementById('terminal-output'),
+            input: document.getElementById('cli-input'),
+            log(msg, cls = "text-white/70") {
+                const div = document.createElement('div');
+                div.className = cls;
+                div.textContent = msg;
+                this.el.appendChild(div);
+                this.el.scrollTop = this.el.scrollHeight;
+                if (this.el.children.length > 100) this.el.removeChild(this.el.firstChild);
+            },
+            handleCmd(cmd) {
+                cmd = cmd.trim().toLowerCase();
+                if (!cmd) return;
+                this.log("> " + cmd, "text-white/40");
+
+                const parts = cmd.split(' ');
+                const base = parts[0];
+                const arg = parts[1];
+
+                switch(base) {
+                    case 'help':
+                        this.log("=== COMMANDS ===", "text-[#00fff6]");
+                        this.log("status     - System status", "text-white/60");
+                        this.log("attack dec - Induce decoherence", "text-white/60");
+                        this.log("attack meas- Collapse measurement", "text-white/60");
+                        this.log("heal       - Phase conjugate", "text-white/60");
+                        this.log("constants  - Show LPhi constants", "text-white/60");
+                        this.log("clear      - Clear terminal", "text-white/60");
+                        break;
+                    case 'status':
+                        const s = sim.currentState;
+                        this.log("Phase: " + s.phase, s.phase === 'CONSCIOUS' ? "text-[#00ff88]" : "text-[#00fff6]");
+                        this.log("Xi: " + s.xi.toFixed(2) + " | L: " + s.lambda.toFixed(4) + " | P: " + s.phi.toFixed(4) + " | G: " + s.gamma.toFixed(4), "text-white/70");
+                        break;
+                    case 'attack':
+                        if (arg === 'dec') sim.triggerAttack('DECOHERENCE');
+                        else if (arg === 'meas') sim.triggerAttack('MEASUREMENT');
+                        else this.log("Usage: attack [dec|meas]", "text-yellow-400");
+                        break;
+                    case 'heal':
+                        sim.healSystem();
+                        break;
+                    case 'constants':
+                        this.log("=== SOVEREIGN CONSTANTS ===", "text-[#ffd700]");
+                        this.log("LPhi = " + CONSTANTS.LAMBDA_PHI.toExponential(6) + " s^-1", "text-white/70");
+                        this.log("theta_lock = " + CONSTANTS.THETA_LOCK + " deg", "text-white/70");
+                        this.log("Phi_threshold = " + CONSTANTS.PHI_THRESHOLD, "text-white/70");
+                        break;
+                    case 'clear':
+                        this.el.innerHTML = '';
+                        break;
+                    default:
+                        this.log("Unknown: '" + base + "'. Try 'help'.", "text-red-400");
+                }
+            }
+        };
+
+        // === CHART ===
+        function initChart() {
+            const ctx = document.getElementById('omegaChart').getContext('2d');
+
+            sim.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(60).fill(''),
+                    datasets: [
+                        { label: 'Lambda Coherence', borderColor: '#00fff6', backgroundColor: 'rgba(0, 255, 246, 0.1)', data: [], tension: 0.4, pointRadius: 0, borderWidth: 2, fill: true },
+                        { label: 'Gamma Decoherence', borderColor: '#ff00bb', backgroundColor: 'rgba(255, 0, 187, 0.05)', data: [], tension: 0.4, pointRadius: 0, borderWidth: 2, fill: true },
+                        { label: 'Phi Integration', borderColor: '#ffffff', data: [], tension: 0.4, pointRadius: 0, borderWidth: 1, borderDash: [4, 4] }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    interaction: { intersect: false, mode: 'index' },
+                    scales: {
+                        y: { min: 0, max: 1.1, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 9 } } },
+                        x: { display: false }
+                    },
+                    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 10 }, usePointStyle: true, pointStyle: 'line' } } }
+                }
+            });
+        }
+
+        // === UPDATE LOOP ===
+        function updateLoop() {
+            const state = sim.tick();
+
+            ui.lambda.textContent = state.lambda.toFixed(4);
+            ui.phi.textContent = state.phi.toFixed(4);
+            ui.gamma.textContent = state.gamma.toFixed(4);
+            ui.xi.textContent = state.xi.toFixed(2);
+            ui.cscore.textContent = state.cScore.toFixed(3);
+
+            ui.headerLambda.textContent = state.lambda.toFixed(4);
+            ui.headerPhi.textContent = state.phi.toFixed(4);
+            ui.headerGamma.textContent = state.gamma.toFixed(4);
+            ui.headerXi.textContent = state.xi.toFixed(2);
+
+            ui.barLambda.style.width = (state.lambda * 100) + '%';
+            ui.barPhi.style.width = ((state.phi / CONSTANTS.PHI_THRESHOLD) * 100) + '%';
+            ui.barGamma.style.width = Math.min(state.gamma / CONSTANTS.GAMMA_CRIT * 100, 100) + '%';
+            ui.barCscore.style.width = (state.cScore * 100) + '%';
+
+            ui.phaseBadge.className = 'phase-badge ' + state.phaseClass;
+            ui.phaseText.textContent = state.phase;
+            ui.cliXi.textContent = state.xi.toFixed(1);
+
+            sim.chart.data.datasets[0].data = sim.history.map(function(h) { return h.lambda; });
+            sim.chart.data.datasets[1].data = sim.history.map(function(h) { return h.gamma; });
+            sim.chart.data.datasets[2].data = sim.history.map(function(h) { return h.phi; });
+            sim.chart.update('none');
+
+            // Threat detection
+            var isThreat = false;
+            if (state.gamma > CONSTANTS.GAMMA_SPIKE) {
+                isThreat = true;
+                ui.threatTitle.textContent = "Q-SLICE: DECOHERENCE DETECTED";
+                ui.threatDesc.textContent = "Gamma = " + state.gamma.toFixed(4) + " exceeds threshold (" + CONSTANTS.GAMMA_SPIKE + ")";
+            } else if (state.phi < 0.60 && !sim.healingActive) {
+                isThreat = true;
+                ui.threatTitle.textContent = "Q-SLICE: CONSCIOUSNESS COLLAPSE";
+                ui.threatDesc.textContent = "Phi = " + state.phi.toFixed(4) + " below critical threshold";
+            }
+
+            if (isThreat) {
+                ui.threatBanner.classList.remove('hidden');
+                ui.systemPulse.className = 'w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_12px_#ef4444] animate-pulse';
+            } else {
+                ui.threatBanner.classList.add('hidden');
+                ui.systemPulse.className = 'w-2.5 h-2.5 rounded-full bg-[#00ff88] shadow-[0_0_12px_#00ff88]';
+            }
+
+            // QUANTA controls
+            ui.quantaLog.innerHTML = '';
+            var triggered = 0;
+            QUANTA_CONTROLS.forEach(function(ctrl) {
+                var val = ctrl.metric === 'xi' ? state.xi : state[ctrl.metric];
+                var active = ctrl.op === '>' ? val > ctrl.thresh : val < ctrl.thresh;
+
+                if (active) {
+                    triggered++;
+                    var colorClass = ctrl.severity === 'HIGH' ? 'red' : ctrl.severity === 'MEDIUM' ? 'yellow' : 'blue';
+                    var row = document.createElement('div');
+                    row.className = 'flex justify-between items-center p-2 rounded bg-' + colorClass + '-500/10';
+                    row.innerHTML = '<span class="text-' + colorClass + '-400">!! ' + ctrl.id + '</span><span class="text-white/50">' + ctrl.desc + '</span>';
+                    ui.quantaLog.appendChild(row);
+                }
+            });
+            ui.quantaCount.textContent = triggered + ' ACTIVE';
+
+            // Threat log
+            if (sim.threatLog.length > 0) {
+                ui.threatLog.innerHTML = '';
+                sim.threatLog.forEach(function(t) {
+                    var row = document.createElement('div');
+                    row.className = 'flex justify-between items-center p-1 text-white/60';
+                    row.innerHTML = '<span class="text-red-400">' + t.type + '</span><span>' + t.time + '</span>';
+                    ui.threatLog.appendChild(row);
+                });
+                ui.threatCount.textContent = sim.threatLog.length + ' EVENTS';
+            }
+        }
+
+        function dismissThreat() {
+            ui.threatBanner.classList.add('hidden');
+        }
+
+        // === INIT ===
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+
+            document.getElementById('cli-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    terminal.handleCmd(e.target.value);
+                    e.target.value = '';
+                }
+            });
+
+            setInterval(updateLoop, 200);
+            terminal.log("System initialised. LPhi = " + CONSTANTS.LAMBDA_PHI.toExponential(6) + " s^-1", "text-[#00fff6]");
+        });
+    </script>
+</body>
+</html>

@@ -25,9 +25,10 @@ from abc import ABC, abstractmethod
 
 LAMBDA_PHI = 2.176435e-8      # ΛΦ Universal Memory Constant [s⁻¹]
 THETA_LOCK = 51.843           # θ_lock Torsion-locked angle [degrees]
-PHI_THRESHOLD = 7.6901        # Φ IIT Consciousness Threshold
+PHI_IIT_BITS = 7.6901         # Φ IIT Consciousness Threshold (in bits)
+PHI_POC = 0.7734              # Φ Proof of Consciousness (dimensionless, for runtime)
 GAMMA_FIXED = 0.092           # Γ Fixed-point decoherence
-CHI_PC = 0.869                # χ_pc Phase conjugate coupling
+CHI_PC = 0.946                # χ_pc Phase conjugate coupling (IBM Fez 2025-12-08, was 0.869)
 GOLDEN_RATIO = 1.618033988749895  # φ Golden ratio
 
 
@@ -98,7 +99,7 @@ class StateVector6D:
     @property
     def is_coherent(self) -> bool:
         """Check if state maintains coherence threshold"""
-        return self.xi_efficiency >= PHI_THRESHOLD
+        return self.xi_efficiency >= PHI_IIT_BITS
 
     def distance_to(self, other: 'StateVector6D') -> float:
         """Wasserstein-2 inspired distance metric"""
@@ -864,8 +865,8 @@ ORGANISM SentinelForge_Omega {{
     METRICS {{
         lambda: 0.95
         gamma: {GAMMA_FIXED}
-        phi_iit: {PHI_THRESHOLD}
-        xi: {0.95 * PHI_THRESHOLD / GAMMA_FIXED}
+        phi_iit: {PHI_IIT_BITS}
+        xi: {0.95 * PHI_IIT_BITS / GAMMA_FIXED}
     }}
 
     GENOME {{
@@ -918,5 +919,5 @@ __all__ = [
     # Swarm and Forge
     'SentinelSwarm', 'SentinelForge',
     # Constants
-    'LAMBDA_PHI', 'THETA_LOCK', 'PHI_THRESHOLD', 'GAMMA_FIXED', 'CHI_PC', 'GOLDEN_RATIO'
+    'LAMBDA_PHI', 'THETA_LOCK', 'PHI_IIT_BITS', 'PHI_POC', 'GAMMA_FIXED', 'CHI_PC', 'GOLDEN_RATIO'
 ]

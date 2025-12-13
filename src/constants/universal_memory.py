@@ -24,9 +24,10 @@ LAMBDA_PHI = 2.176435e-8  # ΛΦ - How long the universe remembers [s⁻¹]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 THETA_LOCK = 51.843           # θ_lock - Torsion-locked angle [degrees]
-PHI_THRESHOLD = 7.6901        # Φ - IIT Consciousness Threshold [bits]
+PHI_IIT_BITS = 7.6901         # Φ_IIT - IIT Consciousness Threshold [bits]
+PHI_POC = 0.7734              # Φ_POC - Proof of Consciousness (dimensionless, runtime checks)
 GAMMA_FIXED = 0.092           # Γ - Fixed-point decoherence [unitless]
-CHI_PC = 0.869                # χ_pc - Phase conjugate coupling [unitless]
+CHI_PC = 0.946                # χ_pc - Phase conjugate coupling (IBM Fez 2025-12-08, was 0.869)
 GOLDEN_RATIO = 1.618033988749895  # φ - Golden ratio
 
 # Planck scale constants

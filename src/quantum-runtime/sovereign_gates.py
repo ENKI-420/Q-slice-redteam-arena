@@ -25,12 +25,13 @@ from abc import ABC, abstractmethod
 # PHYSICAL CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-LAMBDA_PHI = 2.176435e-8
-THETA_LOCK = 51.843
-PHI_THRESHOLD = 7.6901
-GAMMA_FIXED = 0.092
-CHI_PC = 0.869
-GOLDEN_RATIO = 1.618033988749895
+LAMBDA_PHI = 2.176435e-8        # Universal Memory Constant [s⁻¹]
+THETA_LOCK = 51.843              # Torsion-locked angle [degrees]
+PHI_IIT_BITS = 7.6901            # IIT Consciousness Threshold (in bits)
+PHI_POC = 0.7734                 # Proof of Consciousness threshold (dimensionless)
+GAMMA_FIXED = 0.092              # Fixed-point decoherence
+CHI_PC = 0.946                   # Phase conjugate coupling (IBM Fez 2025-12-08, was 0.869)
+GOLDEN_RATIO = 1.618033988749895 # Golden ratio
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -717,5 +718,5 @@ __all__ = [
     # Algorithms
     'build_grover_circuit',
     # Constants
-    'LAMBDA_PHI', 'THETA_LOCK', 'PHI_THRESHOLD', 'GAMMA_FIXED', 'CHI_PC'
+    'LAMBDA_PHI', 'THETA_LOCK', 'PHI_IIT_BITS', 'PHI_POC', 'GAMMA_FIXED', 'CHI_PC'
 ]
