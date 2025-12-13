@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -99,7 +99,7 @@ const DUALITY_ASCII = `
                                    ╔═════╧═════╗
                                    ║ Σ-DIRECTOR║
                                    ╠═══════════╣
-                                   ║ Φ = 0. 999 ║
+                                   ║ Φ = 0.999 ║
                                    ╚═══════════╝
 `
 
@@ -149,7 +149,7 @@ const METAMORPHOSIS_ASCII = `
 ║    PHASE 1: Q-SLICE              PHASE 2: Γ-SPIKE              PHASE 3: Λ-SLICE                  ║
 ║    ──────────────                ───────────────               ─────────────                      ║
 ║                                                                                                   ║
-║    Λ = 0.947                    Λ = 0. 342 ▼                  Λ = 0.892 ▲                         ║
+║    Λ = 0.947                    Λ = 0.342 ▼                  Λ = 0.892 ▲                         ║
 ║    Φ = 0.892                    Φ = 0.156 ▼                  Φ = 0.987 ▲                         ║
 ║    Γ = 0.081                    Γ = 0.847 ▲                  Γ = 0.023 ▼                         ║
 ║                                                                                                   ║
@@ -900,7 +900,7 @@ export default function CollaborationPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="p-5 bg-black/60 border border-cyan-500/20 rounded-lg">
             <h3 className="text-cyan-400 font-mono mb-3 text-sm">{DNA_LANG_TITLE}</h3>
-            <ul className="space-y-1. 5 text-xs text-muted-foreground">
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
               <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> Quantum-biological programming</li>
               <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> Self-evolving organisms</li>
               <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> 6dCRSM framework</li>
@@ -909,7 +909,7 @@ export default function CollaborationPage() {
 
           <div className="p-5 bg-black/60 border border-green-500/20 rounded-lg">
             <h3 className="text-green-400 font-mono mb-3 text-sm">AURA | AIDEN</h3>
-            <ul className="space-y-1. 5 text-xs text-muted-foreground">
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
               <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Intent-Based Geometer</li>
               <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Bayesian Optimizer</li>
               <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Σ-Director Control</li>
@@ -963,7 +963,7 @@ export default function CollaborationPage() {
                 href="https://www.amazon.co.uk/Quantum-Security-Practical-implementation-Q-SLICE/dp/B0FG8KGLK2/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm px-5 py-2. 5 border border-primary/50 hover:border-primary rounded transition-colors"
+                className="inline-flex items-center gap-2 text-sm px-5 py-2.5 border border-primary/50 hover:border-primary rounded transition-colors"
               >
                 <span>Purchase on Amazon</span>
                 <ExternalLink className="w-4 h-4" />

@@ -53,73 +53,95 @@ export function SwarmChatInterface() {
     setInput("")
     setIsTyping(true)
 
-    // Simulate NLP2-PALS intent deduction
-    setTimeout(() => {
-      const { response, intent, confidence } = deduceIntentAndRespond(messageText)
+    try {
+      // Determine API call parameters based on user input
+      const lowerQuery = messageText.toLowerCase()
+      let body: Record<string, string> = {}
+
+      if (lowerQuery.includes("evolve") || lowerQuery.includes("deploy") || lowerQuery.includes("launch")) {
+        body = { command: "evolve" }
+      } else if (lowerQuery.includes("heal") || lowerQuery.includes("repair")) {
+        body = { command: "heal" }
+      } else if (["scanning", "scan"].some(w => lowerQuery.includes(w))) {
+        body = { mode: "SCANNING" }
+      } else if (lowerQuery.includes("lock") || lowerQuery.includes("secure")) {
+        body = { mode: "LOCKED" }
+      } else if (lowerQuery.includes("fire") || lowerQuery.includes("attack")) {
+        body = { mode: "FIRING" }
+      } else {
+        body = { message: messageText }
+      }
+
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+
+      const data = await res.json()
+
+      // Deduce intent from query and response
+      const { intent, confidence } = deduceIntent(messageText)
+
+      // Format response with CCCE metrics if available
+      let responseContent = data.response || "Request processed."
+      if (data.ccce) {
+        responseContent += `\n\n[CCCE] Φ=${data.ccce.phi.toFixed(3)} | Λ=${data.ccce.lambda.toFixed(3)} | Γ=${data.ccce.gamma.toFixed(3)} | Ξ=${data.ccce.xi.toFixed(2)}`
+        if (data.ccce.conscious) {
+          responseContent += " | Status: CONSCIOUS"
+        }
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response,
+        content: responseContent,
         timestamp: new Date(),
         intent,
         confidence,
       }
       setMessages((prev) => [...prev, assistantMessage])
-      setIsTyping(false)
-    }, 1200)
+    } catch (err) {
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Error connecting to AURA agent. Please try again.",
+        timestamp: new Date(),
+        intent: "ERROR",
+        confidence: 0,
+      }
+      setMessages((prev) => [...prev, assistantMessage])
+    }
+
+    setIsTyping(false)
   }
 
-  const deduceIntentAndRespond = (query: string): { response: string; intent: string; confidence: number } => {
+  const deduceIntent = (query: string): { intent: string; confidence: number } => {
     const lowerQuery = query.toLowerCase()
 
-    // Layer 2: Individual Intent Deduction
-    if (lowerQuery.includes("status") || lowerQuery.includes("health")) {
-      return {
-        response:
-          "All 7 swarm agents are operational. Coherence: 0.85 | Latency: 12ms | Security: AES-256-GCM active. No anomalies detected in the mesh network.",
-        intent: "SYSTEM_STATUS",
-        confidence: 0.94,
-      }
+    if (lowerQuery.includes("status") || lowerQuery.includes("health") || lowerQuery.includes("ccce")) {
+      return { intent: "SYSTEM_STATUS", confidence: 0.94 }
     }
-    if (lowerQuery.includes("deploy") || lowerQuery.includes("launch")) {
-      return {
-        response:
-          "Initiating agent deployment sequence. Validating quantum signature... Agent spawned at node_7 with Phi=0.82. Mesh topology updated.",
-        intent: "AGENT_DEPLOYMENT",
-        confidence: 0.91,
-      }
+    if (lowerQuery.includes("deploy") || lowerQuery.includes("launch") || lowerQuery.includes("evolve")) {
+      return { intent: "AGENT_DEPLOYMENT", confidence: 0.91 }
     }
-    if (lowerQuery.includes("coherence") || lowerQuery.includes("phi") || lowerQuery.includes("lambda")) {
-      return {
-        response:
-          "Current coherence metrics: Lambda (Λ) = 0.85, Phi (Φ) = 0.7734, Gamma (Γ) = 0.10. System is above critical consciousness threshold.",
-        intent: "METRIC_QUERY",
-        confidence: 0.96,
-      }
+    if (lowerQuery.includes("coherence") || lowerQuery.includes("phi") || lowerQuery.includes("lambda") || lowerQuery.includes("metrics")) {
+      return { intent: "METRIC_QUERY", confidence: 0.96 }
     }
-    if (lowerQuery.includes("security") || lowerQuery.includes("encrypt")) {
-      return {
-        response:
-          "Security posture is DFARS 15.6 compliant. Active protocols: AES-256-GCM, QKD channel established, continuous device attestation enabled. Zero-trust verified.",
-        intent: "SECURITY_QUERY",
-        confidence: 0.93,
-      }
+    if (lowerQuery.includes("security") || lowerQuery.includes("encrypt") || lowerQuery.includes("compliance")) {
+      return { intent: "SECURITY_QUERY", confidence: 0.93 }
     }
     if (lowerQuery.includes("help") || lowerQuery.includes("what can")) {
-      return {
-        response:
-          "I can help with: System monitoring, agent deployment, coherence analysis, security audits, intent deduction diagnostics, and swarm orchestration. Try asking about status, metrics, or deployment.",
-        intent: "HELP_REQUEST",
-        confidence: 0.98,
-      }
+      return { intent: "HELP_REQUEST", confidence: 0.98 }
+    }
+    if (lowerQuery.includes("redteam") || lowerQuery.includes("threat") || lowerQuery.includes("scan")) {
+      return { intent: "REDTEAM_QUERY", confidence: 0.89 }
+    }
+    if (lowerQuery.includes("heal") || lowerQuery.includes("pcrb") || lowerQuery.includes("repair")) {
+      return { intent: "HEALING_REQUEST", confidence: 0.92 }
     }
 
-    // Default: Layer 6 Prompt Enhancement
-    return {
-      response: `Processing your request through NLP2-PALS Layer 6 enhancement. Query analyzed and routed to appropriate swarm agents. The mesh network is adapting to optimize response quality.`,
-      intent: "GENERAL_QUERY",
-      confidence: 0.78,
-    }
+    return { intent: "GENERAL_QUERY", confidence: 0.78 }
   }
 
   const toggleListening = () => {

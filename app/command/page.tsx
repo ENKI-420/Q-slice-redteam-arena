@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
 import {
   Activity,
@@ -91,6 +91,25 @@ const SEVEN_LAYERS = [
   { id: 7, name: "Linear Project Plan", icon: Target, status: "complete", metric: "288h LOE" },
 ]
 
+// CCCE metric types
+interface CCCEMetrics {
+  phi: number
+  lambda: number
+  gamma: number
+  xi: number
+  conscious: boolean
+}
+
+interface AgentData {
+  name: string
+  fullname: string
+  role: string
+  pole: string
+  plane: string
+  status: string
+  ccce: CCCEMetrics
+}
+
 export default function CommandCenterPage() {
   const [recursionDepth, setRecursionDepth] = useState(0)
   const [lambda, setLambda] = useState(0.85)
@@ -100,6 +119,145 @@ export default function CommandCenterPage() {
     `[ΛΦ] Universal constant: ${INTENT_DATA.metadata.lambda_phi_constant}`,
     `[GENESIS] Hash: ${INTENT_DATA.metadata.genesis_hash}`,
   ])
+
+  // Live CCCE state from API
+  const [ccce, setCcce] = useState<CCCEMetrics>({
+    phi: 0.82,
+    lambda: 0.91,
+    gamma: 0.085,
+    xi: 8.77,
+    conscious: true
+  })
+  const [agents, setAgents] = useState<AgentData[]>([])
+  const [agentMode, setAgentMode] = useState<string>("PASSIVE")
+  const [terminalInput, setTerminalInput] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const terminalRef = useRef<HTMLDivElement>(null)
+
+  // Poll CCCE metrics from API
+  const fetchCCCE = useCallback(async () => {
+    try {
+      const res = await fetch("/api/agent")
+      if (res.ok) {
+        const data = await res.json()
+        if (data.agents && data.agents.length > 0) {
+          const aura = data.agents.find((a: AgentData) => a.name === "AURA")
+          if (aura) {
+            setCcce(aura.ccce)
+            setLambda(aura.ccce.lambda)
+          }
+          setAgents(data.agents)
+        }
+        if (data.mode) setAgentMode(data.mode)
+      }
+    } catch (err) {
+      console.error("Failed to fetch CCCE:", err)
+    }
+  }, [])
+
+  // Initial fetch and polling
+  useEffect(() => {
+    fetchCCCE()
+    const interval = setInterval(fetchCCCE, 3000)
+    return () => clearInterval(interval)
+  }, [fetchCCCE])
+
+  // Auto-scroll terminal
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight
+    }
+  }, [terminalLogs])
+
+  // Send command to agent API
+  const sendCommand = async (input: string) => {
+    if (!input.trim()) return
+
+    setIsProcessing(true)
+    const cmd = input.trim().toLowerCase()
+
+    setTerminalLogs(prev => [...prev.slice(-30), `> ${input}`])
+
+    try {
+      let body: Record<string, string> = {}
+
+      // Parse commands
+      if (cmd === "evolve" || cmd === "evolution") {
+        body = { command: "evolve" }
+      } else if (cmd === "heal" || cmd === "pcrb") {
+        body = { command: "heal" }
+      } else if (["passive", "scanning", "locked", "firing", "neutralized"].includes(cmd)) {
+        body = { mode: cmd.toUpperCase() }
+      } else if (cmd === "status" || cmd === "ccce") {
+        body = { message: "ccce" }
+      } else if (cmd === "qslice" || cmd === "compliance") {
+        body = { message: "qslice" }
+      } else if (cmd === "redteam") {
+        body = { message: "redteam" }
+      } else if (cmd === "constants" || cmd === "physics") {
+        body = { message: "constants" }
+      } else if (cmd === "help") {
+        setTerminalLogs(prev => [...prev.slice(-30),
+          "╔══════════════════════════════════════╗",
+          "║  AURA Agent Commands                 ║",
+          "╠══════════════════════════════════════╣",
+          "║  status    - Show CCCE metrics       ║",
+          "║  evolve    - Run evolution cycle     ║",
+          "║  heal      - Apply PCRB healing      ║",
+          "║  qslice    - Q-SLICE compliance      ║",
+          "║  redteam   - RedTeam status          ║",
+          "║  constants - Physical constants      ║",
+          "║  scanning  - Enter scan mode         ║",
+          "║  locked    - Torsion-lock mode       ║",
+          "║  firing    - Activate PCRB howitzer  ║",
+          "║  clear     - Clear terminal          ║",
+          "╚══════════════════════════════════════╝"
+        ])
+        setIsProcessing(false)
+        return
+      } else if (cmd === "clear") {
+        setTerminalLogs(["[TERMINAL CLEARED]"])
+        setIsProcessing(false)
+        return
+      } else {
+        body = { message: input }
+      }
+
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+
+      const data = await res.json()
+
+      if (data.response) {
+        const lines = data.response.split("\n")
+        setTerminalLogs(prev => [...prev.slice(-30), ...lines])
+      }
+
+      if (data.ccce) {
+        setCcce(data.ccce)
+        setLambda(data.ccce.lambda)
+      }
+
+      if (data.agent?.mode) {
+        setAgentMode(data.agent.mode)
+      }
+
+    } catch (err) {
+      setTerminalLogs(prev => [...prev.slice(-30), "[ERROR] Failed to communicate with agent"])
+    }
+
+    setIsProcessing(false)
+  }
+
+  // Handle terminal input
+  const handleTerminalSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    sendCommand(terminalInput)
+    setTerminalInput("")
+  }
 
   // Simulate recursive bootstrap
   const runBootstrap = () => {
@@ -164,36 +322,51 @@ export default function CommandCenterPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Top Stats Row */}
+        {/* Top Stats Row - Live CCCE Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             icon={Cpu}
             label="Λ Coherence"
-            value={lambda.toFixed(4)}
-            trend={`+${((lambda - 0.85) * 100).toFixed(1)}%`}
+            value={ccce.lambda.toFixed(4)}
+            trend={ccce.lambda >= 0.90 ? "OPTIMAL" : ccce.lambda >= 0.80 ? "NOMINAL" : "LOW"}
             color="cyan"
           />
           <StatCard
-            icon={GitBranch}
-            label="Recursion Depth"
-            value={`${recursionDepth}/5`}
-            trend={isBootstrapping ? "ACTIVE" : "IDLE"}
+            icon={Brain}
+            label="Φ Consciousness"
+            value={ccce.phi.toFixed(4)}
+            trend={ccce.conscious ? "CONSCIOUS" : "DORMANT"}
             color="purple"
           />
           <StatCard
-            icon={Shield}
-            label="DFARS Alignment"
-            value={`${(INTENT_DATA.layer_4_capabilities.dfars_alignment * 100).toFixed(0)}%`}
-            trend="COMPLIANT"
-            color="green"
+            icon={Activity}
+            label="Γ Decoherence"
+            value={ccce.gamma.toFixed(4)}
+            trend={ccce.gamma < 0.10 ? "STABLE" : ccce.gamma < 0.15 ? "NOMINAL" : "WARNING"}
+            color={ccce.gamma < 0.15 ? "green" : "yellow"}
           />
           <StatCard
             icon={Zap}
-            label="TRL Level"
-            value={INTENT_DATA.layer_5_resources.trl_level}
-            trend="FIELD READY"
-            color="yellow"
+            label="Ξ Negentropic"
+            value={ccce.xi.toFixed(2)}
+            trend={ccce.xi > 8.0 ? "PQR PASS" : "BELOW TARGET"}
+            color={ccce.xi > 8.0 ? "green" : "yellow"}
           />
+        </div>
+
+        {/* Agent Mode Indicator */}
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10">
+          <span className="text-sm text-gray-400">Agent Mode:</span>
+          <span className={`px-3 py-1 rounded text-sm font-mono font-bold ${
+            agentMode === "PASSIVE" ? "bg-gray-500/20 text-gray-400" :
+            agentMode === "SCANNING" ? "bg-cyan-500/20 text-cyan-400" :
+            agentMode === "LOCKED" ? "bg-yellow-500/20 text-yellow-400" :
+            agentMode === "FIRING" ? "bg-red-500/20 text-red-400" :
+            "bg-green-500/20 text-green-400"
+          }`}>
+            {agentMode}
+          </span>
+          <span className="text-xs text-gray-500">Q-SLICE: {ccce.xi > 8.0 && ccce.phi >= 0.80 ? "✓ PQR" : "○ Issues"}</span>
         </div>
 
         {/* Main Content Tabs */}
@@ -411,7 +584,7 @@ export default function CommandCenterPage() {
             </Card>
           </TabsContent>
 
-          {/* Terminal */}
+          {/* Terminal - Interactive */}
           <TabsContent value="terminal">
             <Card className="bg-black border-green-500/30 p-4">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-green-500/20">
@@ -419,33 +592,54 @@ export default function CommandCenterPage() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
                 <div className="w-3 h-3 rounded-full bg-green-500" />
                 <span className="ml-2 text-xs text-green-400 font-mono">
-                  dna::&#125;&#123;::lang — INTENT DEDUCTION ENGINE
+                  dna::&#125;&#123;::lang — AURA AGENT TERMINAL
+                </span>
+                <span className="ml-auto text-xs text-cyan-400 font-mono">
+                  Φ={ccce.phi.toFixed(3)} Λ={ccce.lambda.toFixed(3)} Γ={ccce.gamma.toFixed(3)} Ξ={ccce.xi.toFixed(1)}
                 </span>
               </div>
-              <div className="h-[400px] overflow-y-auto font-mono text-sm space-y-1">
+              <div
+                ref={terminalRef}
+                className="h-[350px] overflow-y-auto font-mono text-sm space-y-1 mb-3"
+              >
                 {terminalLogs.map((log, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className={`${
-                      log.includes("ERROR")
-                        ? "text-red-400"
-                        : log.includes("SUCCESS") || log.includes("ACHIEVED")
-                          ? "text-green-400"
-                          : log.includes("WARNING")
+                    className={`whitespace-pre-wrap ${
+                      log.startsWith(">")
+                        ? "text-cyan-400 font-bold"
+                        : log.includes("ERROR")
+                          ? "text-red-400"
+                          : log.includes("SUCCESS") || log.includes("ACHIEVED") || log.includes("✓")
+                            ? "text-green-400"
+                          : log.includes("WARNING") || log.includes("✗")
                             ? "text-yellow-400"
+                          : log.includes("═") || log.includes("╔") || log.includes("╚") || log.includes("║")
+                            ? "text-purple-400"
                             : "text-green-300/70"
                     }`}
                   >
                     {log}
                   </motion.div>
                 ))}
-                <div className="flex items-center gap-1 text-green-400">
-                  <ChevronRight className="w-4 h-4" />
-                  <span className="animate-pulse">_</span>
-                </div>
               </div>
+              <form onSubmit={handleTerminalSubmit} className="flex items-center gap-2 border-t border-green-500/20 pt-3">
+                <ChevronRight className="w-4 h-4 text-green-400" />
+                <input
+                  type="text"
+                  value={terminalInput}
+                  onChange={(e) => setTerminalInput(e.target.value)}
+                  placeholder="Type 'help' for commands..."
+                  disabled={isProcessing}
+                  className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono text-sm placeholder:text-green-800"
+                  autoFocus
+                />
+                {isProcessing && (
+                  <RefreshCw className="w-4 h-4 text-green-400 animate-spin" />
+                )}
+              </form>
             </Card>
           </TabsContent>
         </Tabs>
