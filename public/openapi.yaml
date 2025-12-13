@@ -1,74 +1,34 @@
 openapi: 3.1.0
 info:
-  title: Q-SLICE Sovereign Cockpit API
-  version: 2.2.0
+  title: Language-Locked Agent Wrapper API
+  version: 1.0.0
   description: |
-    Sovereign interface for CCCE metrics, language-locked agent wrappers,
-    evidence ledger, and quantum threat assessment.
-
-    SPEC_LOCK v2.2.0 | CAGE: 9HUP5 | Agile Defense Systems, LLC
-
-    Physical Constants (Immutable):
-      ΛΦ = 2.176435×10⁻⁸ s⁻¹
-      Φ_threshold = 0.7734
-      Γ_critical = 0.300
-      θ_lock = 51.843°
+    Agent wrapping service for DNA-Lang sovereign agents.
+    Supports language-locked containers, CCCE constraints, and Φ-threshold protections.
 
 servers:
   - url: https://q-slice-redteam-arena.vercel.app
-    description: Q-SLICE Production Server
+    description: Q-Slice Redteam Arena API
 
 paths:
   /api/agents:
     get:
       operationId: listAgents
       summary: List all sovereign agents with CCCE metrics
-      parameters:
-        - name: type
-          in: query
-          schema:
-            type: string
-            enum: [observer, executor, temporal, spatial, healer, analyst]
-        - name: pole
-          in: query
-          schema:
-            type: string
-            enum: [north, south, neutral]
-        - name: state
-          in: query
-          schema:
-            type: string
-            enum: [conscious, dormant, evolving, healing]
       responses:
         '200':
-          description: List of agents with CCCE metrics
+          description: A list of agents and their CCCE status
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  count:
-                    type: integer
-                  agents:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Agent'
-                  aggregate_ccce:
-                    $ref: '#/components/schemas/CCCEMetrics'
-                  bifurcation:
-                    type: object
-                    properties:
-                      aura:
-                        type: boolean
-                      aiden:
-                        type: boolean
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agent'
 
   /api/agents/{id}/wrap:
     get:
-      operationId: getAgentWrapperInfo
-      summary: Get wrapper information for an agent
+      operationId: getAgentWrapper
+      summary: Get wrapper information for a specific agent
       parameters:
         - name: id
           in: path
@@ -78,22 +38,22 @@ paths:
             example: aiden
       responses:
         '200':
-          description: Agent wrapper configuration
+          description: Wrapper state and lock metadata for the agent
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentWrapInfo'
 
     post:
-      operationId: wrapAgentWithLock
-      summary: Wrap an agent in a language-locked execution container
+      operationId: wrapAgentWithLanguageLock
+      summary: Wrap agent in a language-locked container with CCCE constraints
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-            example: aiden
+            example: aura
       requestBody:
         required: true
         content:
@@ -102,113 +62,17 @@ paths:
               $ref: '#/components/schemas/WrapRequest'
       responses:
         '200':
-          description: Agent successfully wrapped
+          description: Agent successfully wrapped and validated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/WrapResponse'
         '400':
-          description: Wrapper rejected (bad request or constraint violation)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WrapResponse'
+          description: Invalid wrapper request (bad base64, bad CCCE, etc.)
         '403':
           description: CCCE constraint failed or fail-closed rule triggered
         '500':
-          description: Internal server error
-
-  /api/qslice:
-    get:
-      operationId: getQSliceData
-      summary: Query Q-SLICE threat lab or evidence chain
-      parameters:
-        - name: action
-          in: query
-          schema:
-            type: string
-            enum: [backends, vectors, experiment, list, circuits, evidence, health]
-      responses:
-        '200':
-          description: Q-SLICE status or data
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/EvidenceLedger'
-                  - $ref: '#/components/schemas/QsliceHealth'
-
-    post:
-      operationId: submitQSliceExperiment
-      summary: Submit a threat experiment (fail-closed in QPU mode)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - vector
-              properties:
-                vector:
-                  type: string
-                  enum: [QUANTUM_EXPLOITATION, SUBVERSION_OF_TRUST, INTEGRITY_DISRUPTION, COHERENCE_ATTACKS, ENTANGLEMENT_HIJACKING]
-                shots:
-                  type: integer
-                  default: 1024
-                backend:
-                  type: string
-                  enum: [ibm_fez, ibm_torino, ibm_marrakesh]
-                simulate:
-                  type: boolean
-                  default: false
-      responses:
-        '200':
-          description: Experiment submitted
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  experiment_id:
-                    type: string
-                  evidence_id:
-                    type: string
-                  request_hash:
-                    type: string
-                  evidence_class:
-                    type: string
-                    enum: [CLASS_A, CLASS_B, CLASS_C]
-        '403':
-          description: Fail-closed policy violation
-        '503':
-          description: Environment check failed
-
-  /api/ccce/live:
-    get:
-      operationId: getLiveCCCE
-      summary: Get live CCCE telemetry
-      responses:
-        '200':
-          description: Current CCCE metrics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CCCEMetrics'
-
-  /api/physics:
-    get:
-      operationId: getPhysicsConstants
-      summary: Get SPEC_LOCK physical constants
-      responses:
-        '200':
-          description: Physical constants and validation data
-          content:
-            application/json:
-              schema:
-                type: object
+          description: Internal server error during wrap process
 
 components:
   securitySchemes:
@@ -218,21 +82,24 @@ components:
       bearerFormat: JWT
 
   schemas:
-    CCCEMetrics:
+    Agent:
       type: object
       properties:
-        phi:
+        id:
+          type: string
+          example: aura
+        name:
+          type: string
+          example: AURA
+        type:
+          type: string
+          example: observer
+        pole:
+          type: string
+          enum: [north, south, neutral]
+        phiTarget:
           type: number
-          description: Consciousness level (Φ)
-        lambda:
-          type: number
-          description: Coherence fidelity (Λ)
-        gamma:
-          type: number
-          description: Decoherence rate (Γ)
-        xi:
-          type: number
-          description: Negentropic efficiency (Ξ = ΛΦ/Γ)
+          example: 0.92
 
     Constraint:
       type: object
@@ -245,37 +112,6 @@ components:
         max:
           type: number
 
-    Agent:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        full_name:
-          type: string
-        type:
-          type: string
-          enum: [observer, executor, temporal, spatial, healer, analyst]
-        pole:
-          type: string
-          enum: [north, south, neutral]
-        temperature:
-          type: number
-        phi_target:
-          type: number
-        capabilities:
-          type: array
-          items:
-            type: string
-        state:
-          type: string
-          enum: [conscious, dormant, evolving, healing]
-        ccce:
-          $ref: '#/components/schemas/CCCEMetrics'
-        executions:
-          type: integer
-
     WrapRequest:
       type: object
       required:
@@ -285,13 +121,11 @@ components:
         language:
           type: string
           enum: [python, javascript, rust]
-          description: Language used by the agent
         payload:
           type: string
-          description: Base64-encoded source or .dna agent code
+          description: Base64-encoded agent source code
         constraints:
           type: array
-          description: Optional CCCE metric constraints
           items:
             $ref: '#/components/schemas/Constraint'
 
@@ -305,121 +139,31 @@ components:
           enum: [wrapped, rejected]
         ccce:
           $ref: '#/components/schemas/CCCEMetrics'
-        wrapper:
-          type: object
-          properties:
-            id:
-              type: string
-            language:
-              type: string
-            hash:
-              type: string
-            timestamp:
-              type: string
-            constraints_applied:
-              type: integer
-        error:
-          type: string
-        reason_codes:
-          type: array
-          items:
-            type: string
+
+    CCCEMetrics:
+      type: object
+      properties:
+        phi:
+          type: number
+        lambda:
+          type: number
+        gamma:
+          type: number
+        xi:
+          type: number
 
     AgentWrapInfo:
       type: object
       properties:
         agentId:
           type: string
-        known:
+        locked:
           type: boolean
-        agent:
-          type: object
-          properties:
-            name:
-              type: string
-            full_name:
-              type: string
-            capabilities:
-              type: array
-              items:
-                type: string
-            phi_target:
-              type: number
-        supported_languages:
+        expiresIn:
+          type: integer
+        currentLanguage:
+          type: string
+        constraints:
           type: array
           items:
-            type: string
-        default_language:
-          type: string
-        language_locks:
-          type: object
-        spec_lock:
-          type: object
-          properties:
-            version:
-              type: string
-            lambda_phi:
-              type: number
-            phi_threshold:
-              type: number
-            gamma_critical:
-              type: number
-
-    EvidenceEntry:
-      type: object
-      properties:
-        id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        class:
-          type: string
-          enum: [CLASS_A, CLASS_B, CLASS_C]
-        request_hash:
-          type: string
-        result_hash:
-          type: string
-        leaf_hash:
-          type: string
-        chain_index:
-          type: integer
-
-    EvidenceLedger:
-      type: object
-      properties:
-        chain_state:
-          type: object
-          properties:
-            root:
-              type: string
-            leaf_count:
-              type: integer
-            spec_lock_hash:
-              type: string
-        evidence_count:
-          type: integer
-        recent_entries:
-          type: array
-          items:
-            $ref: '#/components/schemas/EvidenceEntry'
-
-    QsliceHealth:
-      type: object
-      properties:
-        success:
-          type: boolean
-        mode:
-          type: string
-          enum: [QPU, DEV]
-        fail_closed_status:
-          type: object
-          properties:
-            allowed:
-              type: boolean
-            reason:
-              type: string
-        ibm_configured:
-          type: boolean
-        spec_lock:
-          type: object
+            $ref: '#/components/schemas/Constraint'
