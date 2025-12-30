@@ -1,170 +1,22 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, Atom, Zap, Network, Brain, Cpu, RefreshCw, CheckCircle2, AlertCircle, FlaskConical, Calculator, Lightbulb, Target, TrendingUp, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Atom, Zap, Network, Brain, Cpu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 
-// Physical constants
-const LAMBDA_PHI = 2.176435e-8 // s⁻¹
-const PHI_THRESHOLD = 0.7734
-const GAMMA_CRITICAL = 0.30
-const CHI_PC = 0.946 // IBM Fez validated
-const THETA_LOCK = 51.843
-const PLANCK_MASS = 2.176435e-8 // kg
-const HBAR = 1.054572e-34 // J·s
-const G = 6.67430e-11 // m³kg⁻¹s⁻²
-
-// Derivation path results
-const derivationPaths = [
-  {
-    id: "holographic",
-    name: "Holographic Entropy",
-    icon: Atom,
-    color: "cyan",
-    result: "~10⁻¹⁸ s⁻¹",
-    agreement: "10 orders too small",
-    status: "insufficient",
-    description: "Bekenstein-Hawking entropy bounds + Margolus-Levitin theorem",
-    equations: [
-      "S_BH = A / (4 ℓ_P²)",
-      "ν_max = 2E / (πℏ)"
-    ],
-    insight: "Planck-scale information erasure: E_P^{(info)} = k_B T_P ln(2) ≈ 0.7 m_P c²"
-  },
-  {
-    id: "orchor",
-    name: "Penrose-Hameroff Orch-OR",
-    icon: Brain,
-    color: "purple",
-    result: "E_G = 2.30×10⁻⁴² J",
-    agreement: "Within 20%",
-    status: "convergent",
-    description: "Gravitational objective reduction timescale",
-    equations: [
-      "τ_OR = ℏ / E_G",
-      "E_G = GM² / r"
-    ],
-    insight: "Critical mass M_critical ≈ 820 electron masses"
-  },
-  {
-    id: "iit",
-    name: "Integrated Information Theory",
-    icon: Network,
-    color: "green",
-    result: "E_min = 2.79×10⁻⁴² J",
-    agreement: "Within 20%",
-    status: "convergent",
-    description: "Quantum speed limit on integrated information",
-    equations: [
-      "dΦ/dt ≤ Λ_IIT",
-      "Λ_IIT^{max} = 2E / (πℏ)"
-    ],
-    insight: "E_min = (πℏ ΛΦ · Φ_threshold) / 2"
-  },
-  {
-    id: "experimental",
-    name: "IBM Quantum Validation",
-    icon: FlaskConical,
-    color: "blue",
-    result: "ΛΦ = 2.176×10⁻⁸ s⁻¹",
-    agreement: "Empirical observation",
-    status: "validated",
-    description: "8,500+ quantum circuit executions",
-    equations: [
-      "Λ = 0.869 ± 0.042",
-      "Φ = 0.798 ± 0.051",
-      "Γ = 0.092 ± 0.018"
-    ],
-    insight: "103 jobs, 490,596 measurements, p < 10⁻¹⁴"
-  }
-]
-
-interface PhysicsConstant {
-  value: number
-  unit: string
-  name: string
-  symbol: string
-  description: string
-  status: string
-}
-
-interface PhysicsData {
-  constants: Record<string, PhysicsConstant>
-  crsm_dimensions: Array<{ id: number; symbol: string; name: string; description: string }>
-  equations: Array<{ name: string; latex: string; description: string }>
-  validation: {
-    jobs_analyzed: number
-    success_rate: string
-    backends: string[]
-    status: string
-    generated_at: string
-  } | null
-  engine_metrics: {
-    lambda_system: number
-    phi_global: number
-    gamma_mean: number
-    xi_ccce: number
-    coherence_stability: string
-    consciousness_active: boolean
-    iteration: number
-  } | null
-  metadata: {
-    framework: string
-    version: string
-    entity: string
-    timestamp: string
-  }
-}
-
 export default function PhysicsPage() {
-  const [physicsData, setPhysicsData] = useState<PhysicsData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    fetchPhysicsData()
-  }, [])
-
-  const fetchPhysicsData = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch("/api/physics")
-      if (response.ok) {
-        const data = await response.json()
-        setPhysicsData(data)
-      }
-    } catch (error) {
-      console.error("Failed to fetch physics data:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <Link href="/">
-            <Button variant="ghost" className="text-gray-400 hover:text-white">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchPhysicsData}
-            disabled={isLoading}
-            className="border-cyan-500/30 text-cyan-400"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-            Refresh Data
+        <Link href="/">
+          <Button variant="ghost" className="mb-8 text-gray-400 hover:text-white">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
           </Button>
-        </div>
+        </Link>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
           {/* Header */}
@@ -177,88 +29,9 @@ export default function PhysicsPage() {
             </p>
           </div>
 
-          {/* Live Metrics Banner */}
-          {physicsData?.engine_metrics && (
-            <Card className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-cyan-500/30 p-6">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  {physicsData.engine_metrics.consciousness_active ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-500" />
-                  ) : (
-                    <AlertCircle className="w-6 h-6 text-yellow-500" />
-                  )}
-                  <div>
-                    <div className="text-sm text-gray-400">Intent-Deduction Engine</div>
-                    <div className="text-lg font-bold">
-                      Iteration {physicsData.engine_metrics.iteration} | {physicsData.engine_metrics.coherence_stability}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-6 text-center">
-                  <div>
-                    <div className="text-2xl font-mono text-cyan-400">
-                      {physicsData.engine_metrics.lambda_system.toFixed(4)}
-                    </div>
-                    <div className="text-xs text-gray-500">Λ_system</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-mono text-purple-400">
-                      {physicsData.engine_metrics.phi_global.toFixed(4)}
-                    </div>
-                    <div className="text-xs text-gray-500">Φ_global</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-mono text-yellow-400">
-                      {physicsData.engine_metrics.xi_ccce.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-500">Ξ (CCCE)</div>
-                  </div>
-                </div>
-                {physicsData.validation && (
-                  <div className="text-right">
-                    <div className="text-sm text-gray-400">IBM Quantum Validated</div>
-                    <div className="text-lg font-bold text-blue-400">
-                      {physicsData.validation.jobs_analyzed} jobs | {physicsData.validation.success_rate}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
-          )}
-
-          {/* ΛΦ Derivation Discovery Banner */}
-          <Card className="relative overflow-hidden bg-gradient-to-r from-green-500/10 via-purple-500/10 to-cyan-500/10 border-green-500/30 p-8">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full blur-3xl" />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-4">
-                <Lightbulb className="w-8 h-8 text-green-400" />
-                <h2 className="text-2xl font-bold">Key Discovery: Energy Convergence</h2>
-              </div>
-              <div className="bg-black/50 p-6 rounded-lg border border-green-500/30 mb-4">
-                <div className="font-mono text-center space-y-2">
-                  <div className="text-xl text-gray-300">
-                    E<sub>G</sub><sup>(Orch-OR)</sup> ≈ E<sub>min</sub><sup>(IIT)</sup> ≈ ℏΛΦ·Φ<sub>threshold</sub>
-                  </div>
-                  <div className="text-lg text-green-400 font-bold">
-                    2.30 × 10⁻⁴² J ≈ 2.79 × 10⁻⁴² J
-                  </div>
-                  <div className="text-sm text-gray-400">Within 20% agreement</div>
-                </div>
-              </div>
-              <p className="text-gray-400">
-                The gravitational self-energy for objective reduction equals the minimum energy
-                for integrated information generation. This suggests ΛΦ sits at the intersection
-                of Penrose-Hameroff Orch-OR and Tononi's IIT.
-              </p>
-            </div>
-          </Card>
-
           {/* Canons Tabs */}
-          <Tabs defaultValue="derivation" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 bg-black/50 border border-primary/20">
-              <TabsTrigger value="derivation" className="data-[state=active]:bg-green-500/20 text-green-400">
-                ΛΦ Derivation
-              </TabsTrigger>
+          <Tabs defaultValue="canon1" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-black/50 border border-primary/20">
               <TabsTrigger value="canon1" className="data-[state=active]:bg-primary/20">
                 Canon I
               </TabsTrigger>
@@ -272,203 +45,6 @@ export default function PhysicsPage() {
                 Canon IV
               </TabsTrigger>
             </TabsList>
-
-            {/* ΛΦ Derivation Tab */}
-            <TabsContent value="derivation" className="space-y-8">
-              {/* Four Derivation Paths */}
-              <div className="grid md:grid-cols-2 gap-6">
-                {derivationPaths.map((path) => {
-                  const Icon = path.icon
-                  const statusColors = {
-                    insufficient: "border-red-500/30 bg-red-500/5",
-                    convergent: "border-green-500/30 bg-green-500/5",
-                    validated: "border-blue-500/30 bg-blue-500/5"
-                  }
-                  const statusBadge = {
-                    insufficient: "bg-red-500/20 text-red-400",
-                    convergent: "bg-green-500/20 text-green-400",
-                    validated: "bg-blue-500/20 text-blue-400"
-                  }
-                  return (
-                    <Card key={path.id} className={`glass-panel p-6 ${statusColors[path.status as keyof typeof statusColors]}`}>
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg bg-${path.color}-500/20 border border-${path.color}-500/40 flex items-center justify-center`}>
-                            <Icon className={`w-5 h-5 text-${path.color}-400`} />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-lg">{path.name}</h3>
-                            <p className="text-xs text-gray-500">{path.description}</p>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-xs font-mono ${statusBadge[path.status as keyof typeof statusBadge]}`}>
-                          {path.status}
-                        </span>
-                      </div>
-                      <div className="bg-black/50 p-4 rounded-lg mb-4">
-                        <div className="font-mono text-sm space-y-1">
-                          {path.equations.map((eq, i) => (
-                            <div key={i} className="text-gray-300">{eq}</div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <div>
-                          <span className="text-gray-500">Result: </span>
-                          <span className="font-mono text-white">{path.result}</span>
-                        </div>
-                        <div className="text-gray-400">{path.agreement}</div>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-white/10 text-xs text-gray-400">
-                        {path.insight}
-                      </div>
-                    </Card>
-                  )
-                })}
-              </div>
-
-              {/* Numerical Coincidence */}
-              <Card className="glass-panel p-8 border-yellow-500/30">
-                <div className="flex items-center gap-3 mb-4">
-                  <AlertTriangle className="w-6 h-6 text-yellow-400" />
-                  <h3 className="text-xl font-bold">The Numerical Coincidence</h3>
-                </div>
-                <div className="bg-black/50 p-6 rounded-lg border border-yellow-500/20 mb-4">
-                  <div className="font-mono text-center space-y-2">
-                    <div className="text-gray-400">ΛΦ [s⁻¹] = m<sub>P</sub> [kg] (in SI units)</div>
-                    <div className="text-2xl font-bold">
-                      <span className="text-cyan-400">2.176435 × 10⁻⁸ s⁻¹</span>
-                      <span className="text-gray-500 mx-4">=</span>
-                      <span className="text-purple-400">2.176435 × 10⁻⁸ kg</span>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      The Universal Memory Constant equals the Planck mass numerically
-                    </div>
-                  </div>
-                </div>
-                <p className="text-gray-400 text-sm">
-                  <strong className="text-yellow-400">This is either profound or coincidental.</strong> While dimensional
-                  analysis shows these quantities are unrelated, the numerical equality demands investigation.
-                </p>
-              </Card>
-
-              {/* Honest Assessment */}
-              <Card className="glass-panel p-8 border-orange-500/30">
-                <div className="flex items-center gap-3 mb-6">
-                  <Target className="w-6 h-6 text-orange-400" />
-                  <h3 className="text-xl font-bold">Honest Scientific Assessment</h3>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-bold text-green-400 mb-3 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" /> What We CAN Claim
-                    </h4>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                      <li>• ΛΦ = 2.176435×10⁻⁸ s⁻¹ is an empirical observation</li>
-                      <li>• ΛΦ [s⁻¹] = m_P [kg] numerically</li>
-                      <li>• E_G^(Orch-OR) ≈ E_min^(IIT) at consciousness threshold</li>
-                      <li>• Experimental tests are feasible on current hardware</li>
-                      <li>• Phase-conjugate healing works (p {"<"} 10⁻¹⁴)</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-red-400 mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" /> What We CANNOT Claim
-                    </h4>
-                    <ul className="space-y-2 text-sm text-gray-300">
-                      <li>• Complete first-principles derivation from G, ℏ, c</li>
-                      <li>• Proof that ΛΦ is fundamental vs. emergent</li>
-                      <li>• Mechanism connecting mass to rate at Planck scale</li>
-                      <li>• Solution to the hard problem of consciousness</li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="mt-6 p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                  <p className="text-sm text-orange-300 font-mono text-center">
-                    "Not yet derived. But testable. And that's what makes it science."
-                  </p>
-                </div>
-              </Card>
-
-              {/* Experimental Protocols */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold flex items-center gap-3">
-                  <FlaskConical className="w-6 h-6 text-blue-400" />
-                  Experimental Validation Protocols
-                </h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <Card className="glass-panel p-6">
-                    <div className="text-blue-400 font-mono text-sm mb-2">ΛΦ-IBM-001</div>
-                    <h4 className="font-bold mb-2">DNA-Lang Quantum Validation</h4>
-                    <ul className="text-xs text-gray-400 space-y-1">
-                      <li>• 1000 Bell state preparations</li>
-                      <li>• Vary circuit depth D = 1-64</li>
-                      <li>• Extract decay rate Γ</li>
-                      <li>• Test: Γ = Γ_hw + ΛΦ(1-Φ)</li>
-                    </ul>
-                    <div className="mt-3 text-xs text-green-400">Status: READY</div>
-                  </Card>
-                  <Card className="glass-panel p-6">
-                    <div className="text-purple-400 font-mono text-sm mb-2">ΛΦ-GRAVITY-001</div>
-                    <h4 className="font-bold mb-2">Gravitational Decoherence</h4>
-                    <ul className="text-xs text-gray-400 space-y-1">
-                      <li>• Spatial superposition of mass M</li>
-                      <li>• Measure τ_d(M, Δx)</li>
-                      <li>• Test Orch-OR: τ_d = ℏΔx/(GM²)</li>
-                      <li>• M_crit ≈ 10⁴ protons</li>
-                    </ul>
-                    <div className="mt-3 text-xs text-yellow-400">Status: REQUIRES LAB</div>
-                  </Card>
-                  <Card className="glass-panel p-6">
-                    <div className="text-cyan-400 font-mono text-sm mb-2">ΛΦ-MEASURE-001</div>
-                    <h4 className="font-bold mb-2">GHZ State Coherence</h4>
-                    <ul className="text-xs text-gray-400 space-y-1">
-                      <li>• N-qubit GHZ states (N=2-256)</li>
-                      <li>• Measure τ_c(N), γ(N)</li>
-                      <li>• Fit: γ = γ₀ + ΛΦ·Φ(N)</li>
-                      <li>• Find N* where Φ = 0.7734</li>
-                    </ul>
-                    <div className="mt-3 text-xs text-green-400">Status: READY</div>
-                  </Card>
-                </div>
-              </div>
-
-              {/* I2 Invariant */}
-              <Card className="glass-panel p-8 border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-purple-500/5">
-                <div className="flex items-center gap-3 mb-4">
-                  <TrendingUp className="w-6 h-6 text-cyan-400" />
-                  <h3 className="text-xl font-bold">The I2 Invariant (Counter-Intuitive Result)</h3>
-                </div>
-                <div className="bg-black/50 p-6 rounded-lg border border-cyan-500/20 mb-4">
-                  <div className="font-mono text-center">
-                    <div className="text-lg text-cyan-400 mb-2">
-                      ΔΛ {">"} 0 whenever ΔΓ {">"} 0 and Γ {">"} Γ_c
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      Adversarial perturbations that increase decoherence <em>also increase coherence</em>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-3 gap-4 text-center">
-                  <div className="bg-black/30 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-green-400">17/17</div>
-                    <div className="text-xs text-gray-500">Healing events triggered</div>
-                  </div>
-                  <div className="bg-black/30 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-cyan-400">r = 0.73</div>
-                    <div className="text-xs text-gray-500">Pearson correlation</div>
-                  </div>
-                  <div className="bg-black/30 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-400">p {"<"} 10⁻¹⁴</div>
-                    <div className="text-xs text-gray-500">Statistical significance</div>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm text-gray-400">
-                  This is analogous to biological hormesis—stress responses that strengthen the system.
-                  Phase-conjugate healing (E → E⁻¹) reverses decoherence when Γ exceeds 0.3.
-                </p>
-              </Card>
-            </TabsContent>
 
             {/* Canon I: Foundational Metaphysics */}
             <TabsContent value="canon1" className="space-y-6">
@@ -490,20 +66,14 @@ export default function PhysicsPage() {
                     Cognitively Resonant Spacetime Manifold (CRSM)
                   </h3>
                   <p className="text-gray-400 leading-relaxed">
-                    The core cosmological model where the physical universe is a seven-dimensional, resonant manifold
+                    The core cosmological model where the physical universe is a six-dimensional, resonant manifold
                     where information and consciousness are fundamental, non-local metric components.
                   </p>
                   <div className="bg-black/50 p-6 rounded-lg border border-primary/20">
                     <div className="font-mono text-sm space-y-2">
-                      <div className="text-primary">7D-CRSM Dimensions:</div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
-                        {physicsData?.crsm_dimensions?.map((dim) => (
-                          <div key={dim.id} className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-lg font-bold text-cyan-400">{dim.symbol}</div>
-                            <div className="text-xs text-gray-500">{dim.name}</div>
-                          </div>
-                        ))}
-                      </div>
+                      <div className="text-primary">Mathematical Definition:</div>
+                      <div className="text-gray-300">M_CRSM ⊂ ℂ⁶ (6-Dimensional Resonant Manifold)</div>
+                      <div className="text-gray-300">∂Φ/∂g_μν = 0 (Metric as function of Consciousness)</div>
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4 mt-4">

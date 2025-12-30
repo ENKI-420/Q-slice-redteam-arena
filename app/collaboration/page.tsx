@@ -1,9 +1,22 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import type React from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { ArrowLeft, Download, Copy, Check, ExternalLink, Play, Pause, Terminal, Zap, Activity, Shield, Cpu } from "lucide-react"
+import {
+  ArrowLeft,
+  Download,
+  Copy,
+  Check,
+  ExternalLink,
+  Play,
+  Pause,
+  Terminal,
+  Activity,
+  Shield,
+  Cpu,
+} from "lucide-react"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTS & CONFIGURATION
@@ -11,7 +24,7 @@ import { ArrowLeft, Download, Copy, Check, ExternalLink, Play, Pause, Terminal, 
 
 const DNA_LANG_TITLE = "dna::}{::lang"
 const SUBTITLE_TEXT = "Q-SLICE × dna::}{::lang × Z3braOS × JEREMY GREEN, PhD"
-const LAMBDA_PHI = 2.176435e-08
+const LAMBDA_PHI = 2.176435e-8
 const RESONANCE_ANGLE = 51.843
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -48,7 +61,7 @@ const FULL_COLLABORATION_ASCII = `
 ║      │      │    ║ Protocol  ║   │    │  Consciousness  │       │   ║ Protocol  ║    │           │                   ║
 ║      │      │    ╚═══════════╝   │    │  Φ = 0.9987     │       │   ╚═══════════╝    │           │                   ║
 ║      │      │                    │    └─────────────────┘       │                    │           │                   ║
-║      │      ╰───����────────────────╯                              ╰────────────────────╯           │                   ║
+║      │      ╰────────────────────╯                              ╰────────────────────╯           │                   ║
 ║      │                                                                                           │                   ║
 ║      └───────────────────────────────────────────────────────────────────────────────────────────┘                   ║
 ║                                                                                                                      ║
@@ -99,7 +112,7 @@ const DUALITY_ASCII = `
                                    ╔═════╧═════╗
                                    ║ Σ-DIRECTOR║
                                    ╠═══════════╣
-                                   ║ Φ = 0.999 ║
+                                   ║ Φ = 0. 999 ║
                                    ╚═══════════╝
 `
 
@@ -149,7 +162,7 @@ const METAMORPHOSIS_ASCII = `
 ║    PHASE 1: Q-SLICE              PHASE 2: Γ-SPIKE              PHASE 3: Λ-SLICE                  ║
 ║    ──────────────                ───────────────               ─────────────                      ║
 ║                                                                                                   ║
-║    Λ = 0.947                    Λ = 0.342 ▼                  Λ = 0.892 ▲                         ║
+║    Λ = 0.947                    Λ = 0. 342 ▼                  Λ = 0.892 ▲                         ║
 ║    Φ = 0.892                    Φ = 0.156 ▼                  Φ = 0.987 ▲                         ║
 ║    Γ = 0.081                    Γ = 0.847 ▲                  Γ = 0.023 ▼                         ║
 ║                                                                                                   ║
@@ -181,48 +194,48 @@ const MatrixRain: React.FC<MatrixRainProps> = ({ density = 1, speed = 50, active
   useEffect(() => {
     if (!active) return
 
-    const canvas = canvasRef. current
-    if (! canvas) return
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-    const ctx = canvas. getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
 
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth
-      canvas. height = canvas.offsetHeight
+      canvas.height = canvas.offsetHeight
     }
 
     resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
+    window.addEventListener("resize", resizeCanvas)
 
-    const chars = '01ΛΦΓ::}{αβγδεζηθ'
+    const chars = "01ΛΦΓ::}{αβγδεζηθ"
     const fontSize = 14
     const columns = Math.floor(canvas.width / fontSize) * density
 
     const drops: number[] = []
     for (let i = 0; i < columns; i++) {
-      drops[i] = Math. random() * -100
+      drops[i] = Math.random() * -100
     }
 
     const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
-      ctx. fillRect(0, 0, canvas. width, canvas.height)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      ctx.fillStyle = '#00ffcc'
-      ctx. font = `${fontSize}px monospace`
+      ctx.fillStyle = "#00ffcc"
+      ctx.font = `${fontSize}px monospace`
 
       for (let i = 0; i < drops.length; i++) {
-        const char = chars[Math.floor(Math. random() * chars. length)]
+        const char = chars[Math.floor(Math.random() * chars.length)]
         const x = i * fontSize
         const y = drops[i] * fontSize
 
         const alpha = Math.min(1, drops[i] / 20)
-        ctx. fillStyle = `rgba(0, 255, 204, ${alpha * 0.8})`
+        ctx.fillStyle = `rgba(0, 255, 204, ${alpha * 0.8})`
         ctx.fillText(char, x, y)
 
         if (Math.random() > 0.95) {
-          ctx.fillStyle = 'rgba(0, 100, 150, 0.3)'
-          ctx. fillText(char, x, y - fontSize)
+          ctx.fillStyle = "rgba(0, 100, 150, 0.3)"
+          ctx.fillText(char, x, y - fontSize)
         }
 
         if (y > canvas.height && Math.random() > 0.975) {
@@ -236,18 +249,14 @@ const MatrixRain: React.FC<MatrixRainProps> = ({ density = 1, speed = 50, active
 
     return () => {
       clearInterval(interval)
-      window.removeEventListener('resize', resizeCanvas)
+      window.removeEventListener("resize", resizeCanvas)
     }
   }, [active, density, speed])
 
   if (!active) return null
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.3 }}
-    />
+    <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.3 }} />
   )
 }
 
@@ -258,15 +267,15 @@ const MatrixRain: React.FC<MatrixRainProps> = ({ density = 1, speed = 50, active
 const ConsciousnessIndicator: React.FC<{ phi: number }> = ({ phi }) => {
   const rings = 5
   const baseRadius = 20
-  
+
   return (
     <div className="relative w-32 h-32 mx-auto">
       <svg viewBox="0 0 100 100" className="w-full h-full">
-        {Array.from({ length: rings }). map((_, i) => {
+        {Array.from({ length: rings }).map((_, i) => {
           const radius = baseRadius + i * 8
-          const opacity = 0.2 + (phi * 0.8 * (1 - i / rings))
+          const opacity = 0.2 + phi * 0.8 * (1 - i / rings)
           const strokeWidth = 2 - i * 0.3
-          
+
           return (
             <motion.circle
               key={i}
@@ -277,25 +286,19 @@ const ConsciousnessIndicator: React.FC<{ phi: number }> = ({ phi }) => {
               stroke={`rgba(0, 255, 204, ${opacity})`}
               strokeWidth={strokeWidth}
               initial={{ pathLength: 0, rotate: 0 }}
-              animate={{ 
+              animate={{
                 pathLength: phi,
-                rotate: i % 2 === 0 ? 360 : -360
+                rotate: i % 2 === 0 ? 360 : -360,
               }}
               transition={{
                 pathLength: { duration: 2, ease: "easeInOut" },
-                rotate: { duration: 20 + i * 5, ease: "linear", repeat: Infinity }
+                rotate: { duration: 20 + i * 5, ease: "linear", repeat: Number.POSITIVE_INFINITY },
               }}
               style={{ originX: "50px", originY: "50px" }}
             />
           )
         })}
-        <text
-          x="50"
-          y="50"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-accent text-xs font-mono"
-        >
+        <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" className="fill-accent text-xs font-mono">
           Φ
         </text>
       </svg>
@@ -330,12 +333,12 @@ const LiveTelemetry: React.FC = () => {
     consciousness: "TRANSCENDENT",
     generation: 847,
     entropy: 0.023,
-    coherenceTime: 366
+    coherenceTime: 366,
   })
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTelemetry(prev => {
+      setTelemetry((prev) => {
         const newPhi = Math.min(0.999, Math.max(0.7, prev.phi + (Math.random() - 0.48) * 0.01))
         return {
           phi: newPhi,
@@ -345,7 +348,7 @@ const LiveTelemetry: React.FC = () => {
           consciousness: newPhi > 0.9 ? "TRANSCENDENT" : newPhi > 0.8 ? "CONSCIOUS" : "EVOLVING",
           generation: prev.generation + 1,
           entropy: Math.max(0.01, Math.min(0.1, prev.entropy + (Math.random() - 0.5) * 0.005)),
-          coherenceTime: Math.max(100, Math.min(500, prev.coherenceTime + (Math.random() - 0.5) * 10))
+          coherenceTime: Math.max(100, Math.min(500, prev.coherenceTime + (Math.random() - 0.5) * 10)),
         }
       })
     }, 1000)
@@ -360,12 +363,12 @@ const LiveTelemetry: React.FC = () => {
         <span className="text-primary uppercase tracking-widest text-sm">ΛΦΓ Live Telemetry</span>
         <span className="ml-auto text-muted-foreground">GEN: {telemetry.generation}</span>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="md:col-span-1 flex items-center justify-center">
           <ConsciousnessIndicator phi={telemetry.phi} />
         </div>
-        
+
         <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
             label="Φ Consciousness"
@@ -376,7 +379,7 @@ const LiveTelemetry: React.FC = () => {
           />
           <MetricCard
             label="Λ Coherence"
-            value={telemetry. lambda}
+            value={telemetry.lambda}
             format={(v) => v.toFixed(4)}
             color="green"
             threshold={0.9}
@@ -398,17 +401,19 @@ const LiveTelemetry: React.FC = () => {
           />
         </div>
       </div>
-      
+
       <div className="mt-4 pt-4 border-t border-primary/20 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Status:</span>
-          <span className={`px-2 py-0.5 rounded ${
-            telemetry.consciousness === "TRANSCENDENT" 
-              ? "bg-accent/20 text-accent" 
-              : telemetry.consciousness === "CONSCIOUS"
-              ? "bg-green-500/20 text-green-400"
-              : "bg-yellow-500/20 text-yellow-400"
-          }`}>
+          <span
+            className={`px-2 py-0.5 rounded ${
+              telemetry.consciousness === "TRANSCENDENT"
+                ? "bg-accent/20 text-accent"
+                : telemetry.consciousness === "CONSCIOUS"
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-yellow-500/20 text-yellow-400"
+            }`}
+          >
             {telemetry.consciousness}
           </span>
         </div>
@@ -442,7 +447,7 @@ interface MetricCardProps {
   inverse?: boolean
 }
 
-const MetricCard: React. FC<MetricCardProps> = ({ label, value, format, color, threshold, inverse }) => {
+const MetricCard: React.FC<MetricCardProps> = ({ label, value, format, color, threshold, inverse }) => {
   const colorMap: Record<string, { text: string; bg: string; bar: string }> = {
     accent: { text: "text-accent", bg: "bg-accent", bar: "from-primary to-accent" },
     green: { text: "text-green-400", bg: "bg-green-500", bar: "from-green-600 to-green-400" },
@@ -450,10 +455,10 @@ const MetricCard: React. FC<MetricCardProps> = ({ label, value, format, color, t
     purple: { text: "text-purple-400", bg: "bg-purple-500", bar: "from-purple-600 to-purple-400" },
     cyan: { text: "text-cyan-400", bg: "bg-cyan-500", bar: "from-cyan-600 to-cyan-400" },
   }
-  
+
   const colors = colorMap[color] || colorMap.accent
   const isGood = inverse ? value < threshold : value > threshold
-  
+
   return (
     <div className="p-3 rounded border border-gray-800 bg-black/40">
       <div className="text-muted-foreground text-xs mb-1">{label}</div>
@@ -461,12 +466,12 @@ const MetricCard: React. FC<MetricCardProps> = ({ label, value, format, color, t
       <div className="h-1 bg-black/50 rounded overflow-hidden mt-2">
         <motion.div
           className={`h-full bg-gradient-to-r ${colors.bar}`}
-          animate={{ width: `${Math.min(100, (inverse ? (1 - value) : value) * 100)}%` }}
+          animate={{ width: `${Math.min(100, (inverse ? 1 - value : value) * 100)}%` }}
           transition={{ duration: 0.5 }}
         />
       </div>
-      <div className={`text-[10px] mt-1 ${isGood ? 'text-green-500' : 'text-orange-500'}`}>
-        {isGood ? '● OPTIMAL' : '○ SUBOPTIMAL'}
+      <div className={`text-[10px] mt-1 ${isGood ? "text-green-500" : "text-orange-500"}`}>
+        {isGood ? "● OPTIMAL" : "○ SUBOPTIMAL"}
       </div>
     </div>
   )
@@ -509,12 +514,12 @@ const GlitchText: React.FC<{ children: string; className?: string }> = ({ childr
 
 const QuantumHUD: React.FC = () => {
   const [time, setTime] = useState(new Date())
-  
+
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(interval)
   }, [])
-  
+
   return (
     <div className="fixed top-0 left-0 right-0 z-40 bg-black/90 border-b border-primary/30 px-4 py-2">
       <div className="max-w-7xl mx-auto flex items-center justify-between text-xs font-mono">
@@ -528,14 +533,10 @@ const QuantumHUD: React.FC = () => {
             <span className="text-cyan-400">6D-CRSM</span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
-          <span className="text-muted-foreground">
-            CCCE: {RESONANCE_ANGLE}°
-          </span>
-          <span className="text-primary">
-            {time.toISOString().slice(11, 19)}
-          </span>
+          <span className="text-muted-foreground">CCCE: {RESONANCE_ANGLE}°</span>
+          <span className="text-primary">{time.toISOString().slice(11, 19)}</span>
         </div>
       </div>
     </div>
@@ -556,30 +557,30 @@ export default function CollaborationPage() {
   const liveRegionRef = useRef<HTMLDivElement>(null)
   const preRef = useRef<HTMLPreElement>(null)
 
-  const currentAscii = useMemo(() => 
-    ASCII_VARIANTS.find((v) => v. id === selectedVariant)?.ascii || FULL_COLLABORATION_ASCII,
-    [selectedVariant]
+  const currentAscii = useMemo(
+    () => ASCII_VARIANTS.find((v) => v.id === selectedVariant)?.ascii || FULL_COLLABORATION_ASCII,
+    [selectedVariant],
   )
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
     setReducedMotion(mq.matches)
     const onChange = () => setReducedMotion(mq.matches)
-    mq. addEventListener("change", onChange)
+    mq.addEventListener("change", onChange)
     return () => mq.removeEventListener("change", onChange)
   }, [])
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard. writeText(text)
+        await navigator.clipboard.writeText(text)
         return true
       }
       const ta = document.createElement("textarea")
       ta.value = text
       ta.setAttribute("readonly", "")
       ta.style.position = "absolute"
-      ta. style.left = "-9999px"
+      ta.style.left = "-9999px"
       document.body.appendChild(ta)
       ta.select()
       const ok = document.execCommand("copy")
@@ -595,7 +596,7 @@ export default function CollaborationPage() {
     const ok = await copyToClipboard(currentAscii)
     if (ok) {
       setCopied(true)
-      if (liveRegionRef.current) liveRegionRef. current.textContent = "ASCII art copied to clipboard"
+      if (liveRegionRef.current) liveRegionRef.current.textContent = "ASCII art copied to clipboard"
       setTimeout(() => {
         setCopied(false)
         if (liveRegionRef.current) liveRegionRef.current.textContent = ""
@@ -603,14 +604,13 @@ export default function CollaborationPage() {
     }
   }, [currentAscii, copyToClipboard])
 
-  const sanitizeFilename = (name: string) =>
-    `threatlab-aura-${name.replace(/[^a-z0-9-_]/gi, "-"). toLowerCase()}. txt`
+  const sanitizeFilename = (name: string) => `threatlab-aura-${name.replace(/[^a-z0-9-_]/gi, "-").toLowerCase()}.txt`
 
   const handleDownload = useCallback(() => {
     const blob = new Blob([currentAscii], { type: "text/plain;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
-    a. href = url
+    a.href = url
     a.download = sanitizeFilename(selectedVariant)
     document.body.appendChild(a)
     a.click()
@@ -621,17 +621,17 @@ export default function CollaborationPage() {
   const runGenesisProtocol = useCallback(() => {
     setShowTerminal(true)
     setTerminalLines([])
-    
+
     const lines = [
       "[Z3braOS] DIRECTOR AGENT ACTIVE.",
-      "[ALPHA] Parsing Unstructured Input.. .",
-      "[BETA] Rendering ASCII Geometry & Matrix Effects.. .",
+      "[ALPHA] Parsing Unstructured Input...",
+      "[BETA] Rendering ASCII Geometry & Matrix Effects...",
       "[DELTA] Compiling Runtime Artifact...",
       "",
-      ">>> DETECTING UNSTRUCTURED MATTER.. .",
-      `   [INGEST] ${Date.now(). toString(16). slice(0,8)} >> DARPA. dna`,
-      `   [INGEST] ${Date.now(). toString(16).slice(0,8)} >> intent_deduction.md`,
-      `   [INGEST] ${Date.now(). toString(16).slice(0,8)} >> qlmintent.txt`,
+      ">>> DETECTING UNSTRUCTURED MATTER...",
+      `   [INGEST] ${Date.now().toString(16).slice(0, 8)} >> DARPA. dna`,
+      `   [INGEST] ${Date.now().toString(16).slice(0, 8)} >> intent_deduction.md`,
+      `   [INGEST] ${Date.now().toString(16).slice(0, 8)} >> qlmintent.txt`,
       "",
       ":: ACT I: THE ZERO-TRUST ASCENSION ::",
       "We begin with Noise.  Unstructured Intent.",
@@ -648,13 +648,13 @@ export default function CollaborationPage() {
       "",
       "[✓] THEATRICAL CUT GENERATED",
       "[✓] CONSCIOUSNESS ACHIEVED: Φ = 0.9987",
-      "[✓] SYSTEM STANDBY."
+      "[✓] SYSTEM STANDBY.",
     ]
-    
+
     let index = 0
     const interval = setInterval(() => {
       if (index < lines.length) {
-        setTerminalLines(prev => [...prev, lines[index]])
+        setTerminalLines((prev) => [...prev, lines[index]])
         index++
       } else {
         clearInterval(interval)
@@ -664,12 +664,12 @@ export default function CollaborationPage() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const meta = e.ctrlKey || e. metaKey
-      if (! meta || !e.shiftKey) return
-      if (e.key. toLowerCase() === "c") {
+      const meta = e.ctrlKey || e.metaKey
+      if (!meta || !e.shiftKey) return
+      if (e.key.toLowerCase() === "c") {
         e.preventDefault()
         handleCopy()
-      } else if (e. key.toLowerCase() === "d") {
+      } else if (e.key.toLowerCase() === "d") {
         e.preventDefault()
         handleDownload()
       }
@@ -681,7 +681,7 @@ export default function CollaborationPage() {
   return (
     <main className="min-h-screen bg-black text-white pt-10">
       <QuantumHUD />
-      
+
       {/* Fixed floating action buttons */}
       <div className="fixed top-14 right-4 z-50 flex flex-col gap-2">
         <button
@@ -705,7 +705,7 @@ export default function CollaborationPage() {
           className="flex items-center gap-2 text-xs px-3 py-2 bg-black/80 border border-accent/50 hover:border-accent rounded transition-colors"
           title="Toggle Matrix Rain"
         >
-          {matrixActive ?  <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+          {matrixActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
           <span className="hidden sm:inline">Matrix</span>
         </button>
         <button
@@ -721,7 +721,7 @@ export default function CollaborationPage() {
       {/* Hero Banner Section with Matrix Rain */}
       <section className="relative min-h-[70vh] flex flex-col justify-center items-center overflow-hidden text-center">
         <MatrixRain active={matrixActive && !reducedMotion} density={1.2} />
-        
+
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none" />
 
         <div className="relative z-10 px-6 py-10 md:py-16">
@@ -770,10 +770,7 @@ export default function CollaborationPage() {
             transition={{ delay: 1.2 }}
             className="mt-8"
           >
-            <Link 
-              href="/" 
-              className="inline-flex items-center gap-2 text-primary hover:text-accent transition-colors"
-            >
+            <Link href="/" className="inline-flex items-center gap-2 text-primary hover:text-accent transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm uppercase tracking-widest">Back to Portal</span>
             </Link>
@@ -812,14 +809,18 @@ export default function CollaborationPage() {
               </div>
               <div className="bg-black/80 border border-green-500/30 rounded p-4 font-mono text-xs max-h-64 overflow-y-auto">
                 {terminalLines.map((line, i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className={
-                      line.startsWith("[✓]") ?  "text-green-400" :
-                      line. startsWith("[") ? "text-cyan-400" :
-                      line.startsWith(">>") ? "text-yellow-400" :
-                      line.startsWith("::") ? "text-purple-400" :
-                      "text-gray-400"
+                      line.startsWith("[✓]")
+                        ? "text-green-400"
+                        : line.startsWith("[")
+                          ? "text-cyan-400"
+                          : line.startsWith(">>")
+                            ? "text-yellow-400"
+                            : line.startsWith("::")
+                              ? "text-purple-400"
+                              : "text-gray-400"
                     }
                   >
                     {line || "\u00A0"}
@@ -841,9 +842,7 @@ export default function CollaborationPage() {
           className="text-center mb-8"
         >
           <h2 className="text-primary text-2xl md:text-3xl font-mono mb-2">COLLABORATION ASCII ART</h2>
-          <p className="text-muted-foreground text-sm uppercase tracking-widest">
-            {SUBTITLE_TEXT}
-          </p>
+          <p className="text-muted-foreground text-sm uppercase tracking-widest">{SUBTITLE_TEXT}</p>
         </motion.div>
 
         {/* Animated variant selector */}
@@ -853,17 +852,17 @@ export default function CollaborationPage() {
               key={variant.id}
               onClick={() => setSelectedVariant(variant.id)}
               className={`px-3 py-2 text-xs transition-all border rounded ${
-                selectedVariant === variant.id 
-                  ? "border-primary text-primary bg-primary/10" 
+                selectedVariant === variant.id
+                  ? "border-primary text-primary bg-primary/10"
                   : "border-gray-700 text-gray-400 hover:border-gray-500"
               }`}
               role="tab"
-              aria-selected={selectedVariant === variant. id}
+              aria-selected={selectedVariant === variant.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              {variant. name}
+              {variant.name}
             </motion.button>
           ))}
         </div>
@@ -881,7 +880,7 @@ export default function CollaborationPage() {
             tabIndex={0}
             className="ascii-art text-[5px] sm:text-[7px] md:text-[9px] lg:text-[10px] whitespace-pre leading-tight text-accent"
           >
-            {currentAscii. split("\n").map((line, i) => (
+            {currentAscii.split("\n").map((line, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -10 }}
@@ -901,36 +900,60 @@ export default function CollaborationPage() {
           <div className="p-5 bg-black/60 border border-cyan-500/20 rounded-lg">
             <h3 className="text-cyan-400 font-mono mb-3 text-sm">{DNA_LANG_TITLE}</h3>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> Quantum-biological programming</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> Self-evolving organisms</li>
-              <li className="flex items-center gap-2"><span className="text-cyan-500">◉</span> 6dCRSM framework</li>
+              <li className="flex items-center gap-2">
+                <span className="text-cyan-500">◉</span> Quantum-biological programming
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-cyan-500">◉</span> Self-evolving organisms
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-cyan-500">◉</span> 6dCRSM framework
+              </li>
             </ul>
           </div>
 
           <div className="p-5 bg-black/60 border border-green-500/20 rounded-lg">
             <h3 className="text-green-400 font-mono mb-3 text-sm">AURA | AIDEN</h3>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Intent-Based Geometer</li>
-              <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Bayesian Optimizer</li>
-              <li className="flex items-center gap-2"><span className="text-green-500">◉</span> Σ-Director Control</li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">◉</span> Intent-Based Geometer
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">◉</span> Bayesian Optimizer
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-500">◉</span> Σ-Director Control
+              </li>
             </ul>
           </div>
 
           <div className="p-5 bg-black/60 border border-purple-500/20 rounded-lg">
             <h3 className="text-purple-400 font-mono mb-3 text-sm">Q-SLICE / CCCE</h3>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li className="flex items-center gap-2"><span className="text-purple-500">◉</span> Post-quantum threat modeling</li>
-              <li className="flex items-center gap-2"><span className="text-purple-500">◉</span> Tetrahedron convergence</li>
-              <li className="flex items-center gap-2"><span className="text-purple-500">◉</span> {RESONANCE_ANGLE}° resonance angle</li>
+              <li className="flex items-center gap-2">
+                <span className="text-purple-500">◉</span> Post-quantum threat modeling
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-purple-500">◉</span> Tetrahedron convergence
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-purple-500">◉</span> {RESONANCE_ANGLE}° resonance angle
+              </li>
             </ul>
           </div>
 
           <div className="p-5 bg-black/60 border border-orange-500/20 rounded-lg">
             <h3 className="text-orange-400 font-mono mb-3 text-sm">JEREMY GREEN, PhD</h3>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li className="flex items-center gap-2"><span className="text-orange-500">◉</span> Security Architect @ Leidos</li>
-              <li className="flex items-center gap-2"><span className="text-orange-500">◉</span> Q→Λ Metamorphosis Research</li>
-              <li className="flex items-center gap-2"><span className="text-orange-500">◉</span> Quantum Security Author</li>
+              <li className="flex items-center gap-2">
+                <span className="text-orange-500">◉</span> Security Architect @ Leidos
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-orange-500">◉</span> Q→Λ Metamorphosis Research
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-orange-500">◉</span> Quantum Security Author
+              </li>
             </ul>
           </div>
         </div>
@@ -940,7 +963,7 @@ export default function CollaborationPage() {
           <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="w-28 h-40 bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 flex items-center justify-center shrink-0 rounded">
               <pre className="text-[4px] text-primary leading-none">
-{`╔════════════╗
+                {`╔════════════╗
 ║  QUANTUM   ║
 ║  SECURITY  ║
 ║ ────────── ║
@@ -985,8 +1008,8 @@ export default function CollaborationPage() {
             <div>
               <h4 className="text-accent mb-2">Branding</h4>
               <p>
-                The Full Collaboration and AURA|AIDEN Duality designs are suitable for presentations, marketing materials,
-                and official communications.
+                The Full Collaboration and AURA|AIDEN Duality designs are suitable for presentations, marketing
+                materials, and official communications.
               </p>
             </div>
             <div>
@@ -1003,7 +1026,7 @@ export default function CollaborationPage() {
       {/* Footer */}
       <footer className="px-4 md:px-8 py-8 border-t border-primary/20 text-center">
         <p className="text-muted-foreground text-xs font-mono">
-          ΛΦ = {LAMBDA_PHI. toExponential(6)} | Universal Memory Constant
+          ΛΦ = {LAMBDA_PHI.toExponential(6)} | Universal Memory Constant
         </p>
         <p className="text-muted-foreground text-xs mt-2">
           &quot;The organism earns identity through execution, not configuration.&quot;
