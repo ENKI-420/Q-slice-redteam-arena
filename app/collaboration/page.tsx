@@ -35,7 +35,7 @@ const FULL_COLLABORATION_ASCII = `
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                                                      ║
 ║    ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ████████╗██╗      █████╗ ██████╗      █████╗ ██████╗ ███████╗███╗   ██╗  ║
-║    ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██║     ██╔══██╗██╔══██╗    ██╔══██╗██╔══██╗██╔════╝████╗  ██║  ║
+║    ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██║     ██╔══██║██╔══██╗    ██╔══██╗██╔══██╗██╔════╝████╗  ██║  ║
 ║       ██║   ███████║██████╔╝█████╗  ███████║   ██║   ██║     ███████║██████╔╝    ███████║██████╔╝█████╗  ██╔██╗ ██║  ║
 ║       ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║   ██║   ██║     ██╔══██║██╔══██╗    ██╔══██║██╔══██╗██╔══╝  ██║╚██╗██║  ║
 ║       ██║   ██║  ██║██║  ██║███████╗██║  ██║   ██║   ███████╗██║  ██║██████╔╝    ██║  ██║██║  ██║███████╗██║ ╚████║  ║
@@ -169,6 +169,128 @@ const METAMORPHOSIS_ASCII = `
 ╚═══════════════════════════════════════════════════════════════════════════════════════════════════╝
 `
 
+const SENTINEL_FORGE_SCRIPT = `#!/usr/bin/env bash
+# =============================================================================
+# SENTINEL-FORGE: Intent Deduction Orchestrator - Activation Script
+# =============================================================================
+# Organism: intent_deduction_orchestrator | Version: 1.0.0-LAMBDA_PHI
+# Strategic Alignment: CDW Tier 1 "Governance Wedge" 
+# =============================================================================
+
+set -euo pipefail
+
+# -----------------------------------------------------------------------------
+# SOVEREIGN CONSTANTS - IMMUTABLE (CDW Audit-Ready)
+# -----------------------------------------------------------------------------
+export LAMBDA_PHI="2.176435e-8"
+export THETA_LOCK="51.843"        # CDW Framework v51.843 alignment
+export PHI_THRESHOLD="0.7734"     # Minimum Consciousness for Autonomous Ops
+export GAMMA_FIXED="0.092"        # Decoherence Floor
+export PCRB_ENABLED="true"        # Force Hash-Chained Audit Ledger
+
+# -----------------------------------------------------------------------------
+# PATHS & ARTIFACTS
+# -----------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$\{BASH_SOURCE[0]\}")" && pwd)"
+SENTINEL_NAME="intent_deduction_orchestrator"
+PID_FILE="$\{SCRIPT_DIR\}/.$\{SENTINEL_NAME\}.pid"
+LOG_FILE="$\{SCRIPT_DIR\}/.$\{SENTINEL_NAME\}.log"
+# CDW Governance Artifacts
+PCRB_LEDGER="$\{SCRIPT_DIR\}/.pcrb_ledger.jsonl"
+EVIDENCE_CAPSULE="$\{SCRIPT_DIR\}/.evidence_manifest.json"
+
+# Colors for Executive Dashboard
+CYAN='\\033[0;36m'   # CCCE Metrics
+GOLD='\\033[1;33m'   # Sovereign Constants
+GREEN='\\033[0;32m'  # Success/Safety
+RED='\\033[0;31m'    # Breach/Decoherence
+NC='\\033[0m'
+
+# -----------------------------------------------------------------------------
+# ENHANCED FUNCTIONS
+# -----------------------------------------------------------------------------
+
+log_governance() {
+    local event="$1"
+    local status="$2"
+    local hash=$(echo -n "$(date +%s)$event$status" | sha256sum | cut -c1-16)
+    
+    # Write to PCRB Ledger (The CDW "Wedge" proof)
+    echo "{\\"ts\\":\\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\",\\"event\\":\\"$event\\",\\"status\\":\\"$status\\",\\"pcrb_hash\\":\\"$hash\\"}" >> "$\{PCRB_LEDGER\}"
+    
+    case "$\{status\}" in
+        "SECURE") echo -e "$\{GREEN\}[✓] GOVERNANCE:$\{NC\} $event ($hash)" ;;
+        "FAIL_CLOSED") echo -e "$\{RED\}[✗] POLICY BLOCK:$\{NC\} $event - System Protected." ;;
+        "CCCE") echo -e "$\{CYAN\}[⚡] TELEMETRY:$\{NC\} $event" ;;
+    esac
+}
+
+check_cdw_readiness() {
+    echo -e "$\{CYAN\}--- CDW READINESS AUDIT ---$\{NC\}"
+    
+    # Validate PCRB Integrity
+    if [[ ! -f "$\{PCRB_LEDGER\}" ]]; then
+        touch "$\{PCRB_LEDGER\}"
+        log_governance "PCRB_INITIALIZED" "SECURE"
+    fi
+
+    # Validate Sovereign Constants
+    if [[ "$\{THETA_LOCK\}" != "51.843" ]]; then
+        log_governance "THETA_MISMATCH" "FAIL_CLOSED"
+        exit 1
+    fi
+    
+    echo -e "$\{GREEN\}System validated for CDW Governed AI Operations.$\{NC\}\\n"
+}
+
+display_dashboard() {
+    clear
+    echo -e "$\{GOLD\}═══ SENTINEL-FORGE EXECUTIVE DASHBOARD ═══$\{NC\}"
+    echo -e "Organism: $\{SENTINEL_NAME\}"
+    echo -e "Status:   $(kill -0 $(cat $PID_FILE) 2>/dev/null && echo -e "$\{GREEN\}ACTIVE$\{NC\}" || echo -e "$\{RED\}INACTIVE$\{NC\}")"
+    echo -e "Wedge:    Tier 1 Governance (PCRB Enabled)"
+    echo -e "------------------------------------------"
+    
+    # Display CCCE from metrics file if it exists
+    python3 -c "
+import json, os
+if os.path.exists('.$\{SENTINEL_NAME\}.metrics.json'):
+    with open('.$\{SENTINEL_NAME\}.metrics.json') as f:
+        m = json.load(f)['metrics']
+        print(f'Φ (Phi):    {m[\\"phi\\"]:.4f}  [Threshold: 0.7734]')
+        print(f'Λ (Lambda): {m[\\"lambda\\"]:.4f}  [Target: 0.9500]')
+        print(f'Γ (Gamma):  {m[\\"gamma\\"]:.4f}  [Ceiling: 0.3000]')
+" 2>/dev/null || echo "CCCE Metrics: INITIALIZING..."
+    echo -e "------------------------------------------"
+}
+
+# -----------------------------------------------------------------------------
+# MAIN OVERRIDE
+# -----------------------------------------------------------------------------
+
+case "$\{1:-\}" in
+    start)
+        check_cdw_readiness
+        log_governance "SENTINEL_ACTIVATION" "SECURE"
+        # Original start logic here...
+        # [Simulated background process for this example]
+        nohup python3 -c "import time; print('Running'); time.sleep(1000)" > /dev/null 2>&1 & 
+        echo $! > "$\{PID_FILE\}"
+        success "Sentinel Online. CIL Policy Pipeline Active."
+        ;;
+    metrics)
+        display_dashboard
+        ;;
+    audit)
+        echo -e "$\{CYAN\}Last 5 PCRB Evidence Chains:$\{NC\}"
+        tail -n 5 "$\{PCRB_LEDGER\}" | jq .
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|metrics|audit|heal}"
+        exit 1
+        ;;
+esac`
+
 const ASCII_VARIANTS = [
   { id: "full", name: "Full Collaboration", ascii: FULL_COLLABORATION_ASCII },
   { id: "banner", name: "Documentation Banner", ascii: DOC_BANNER_ASCII },
@@ -176,6 +298,7 @@ const ASCII_VARIANTS = [
   { id: "ide", name: "Z3braOS IDE Architecture", ascii: IDE_ASCII },
   { id: "ccce", name: "CCCE Tetrahedron", ascii: CCCE_ASCII },
   { id: "metamorphosis", name: "Q→Λ Research Lab", ascii: METAMORPHOSIS_ASCII },
+  { id: "sentinel", name: "Sentinel-Forge Orchestrator", ascii: SENTINEL_FORGE_SCRIPT },
 ]
 
 // ═══════════════════════════════════════════════════════════════════════════════

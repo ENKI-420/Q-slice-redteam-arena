@@ -3,7 +3,18 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Users, Target, Building2 } from "lucide-react"
+import {
+  ArrowRight,
+  Terminal,
+  Smartphone,
+  Cpu,
+  Network,
+  Shield,
+  Users,
+  Target,
+  Building2,
+  FileCheck,
+} from "lucide-react"
 
 const ASCII_LOGO = `
 ██████╗ ███╗   ██╗ █████╗       ██╗      █████╗ ███╗   ██╗ ██████╗ 
@@ -157,6 +168,8 @@ export default function HomePage() {
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
               >
                 {[
+                  { href: "/cdw-thesis", icon: Building2, label: "CDW Thesis" },
+                  { href: "/integration-plan", icon: FileCheck, label: "Integration Plan" },
                   { href: "/cdw", icon: Building2, label: "CDW Solutions" },
                   { href: "/command", icon: Terminal, label: "Command Center" },
                   { href: "/done", icon: Target, label: "Definition of Done" },
