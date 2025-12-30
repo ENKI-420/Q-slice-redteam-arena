@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Zap, Users, Target } from "lucide-react"
+import { ArrowRight, Terminal, Smartphone, Cpu, Network, Shield, Users, Target, Building2 } from "lucide-react"
 
 const ASCII_LOGO = `
 ██████╗ ███╗   ██╗ █████╗       ██╗      █████╗ ███╗   ██╗ ██████╗ 
@@ -157,13 +157,13 @@ export default function HomePage() {
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
               >
                 {[
+                  { href: "/cdw", icon: Building2, label: "CDW Solutions" },
                   { href: "/command", icon: Terminal, label: "Command Center" },
                   { href: "/done", icon: Target, label: "Definition of Done" },
                   { href: "/z3bra", icon: Smartphone, label: "z3braOS Terminal" },
                   { href: "/engineering", icon: Cpu, label: "Engineering" },
                   { href: "/swarm", icon: Network, label: "Swarm Agents" },
                   { href: "/redteam", icon: Shield, label: "Red Team" },
-                  { href: "/voqn", icon: Zap, label: "VoQN Network" },
                   { href: "/collaboration", icon: Users, label: "Collaboration" },
                 ].map((item, i) => (
                   <Link key={item.href} href={item.href}>
